@@ -1,0 +1,234 @@
+styles:
+  # --- CLASSIC & RETRO ERAS ---
+  - id: golden_age
+    label: "Comic Book: Golden Age (1930s-1950s)"
+    description: "Primary colors, thick outlines, and heroic, simplified anatomy."
+    lighting_moods:
+      - id: flat_bright
+        label: "Flat & Bright"
+        description: "Even, stage-like lighting with minimal shadows."
+        color_palettes:
+          - id: primary_hero
+            label: "Primary Hero (Red, Blue, Yellow)"
+          - id: vintage_newsprint
+            label: "Vintage Newsprint (Muted colors with cyan shadows)"
+      - id: action_burst
+        label: "Action Burst"
+        description: "Dynamic, explosive directional lighting for combat."
+        color_palettes:
+          - id: primary_hero
+            label: "Primary Hero (Red, Blue, Yellow)"
+          - id: secondary_villain
+            label: "Secondary Villain (Purple & Green)"
+
+  - id: silver_age
+    label: "Comic Book: Silver Age (1950s-1970s)"
+    description: "Refined line work, flat colors, and cosmic energy concepts."
+    lighting_moods:
+      - id: kirby_krackle
+        label: "Kirby Krackle"
+        description: "Black dots representing shimmering cosmic energy."
+        color_palettes:
+          - id: primary_hero
+            label: "Primary Hero (Red, Blue, Yellow)"
+          - id: secondary_villain
+            label: "Secondary Villain (Purple & Green)"
+      - id: internal_glow
+        label: "Internal Glow"
+        description: "Light radiating from the character's powers or eyes."
+        color_palettes:
+          - id: electric_night
+            label: "Electric Night (Deep Navy with Neon accents)"
+          - id: primary_hero
+            label: "Primary Hero (Red, Blue, Yellow)"
+
+  - id: pop_art
+    label: "Comic Book: Pop Art / Roy Lichtenstein"
+    description: "High-contrast with prominent Ben-Day dots and thick borders."
+    lighting_moods:
+      - id: flat_bright
+        label: "Flat & Bright"
+        description: "Stark, even lighting to emphasize halftone patterns."
+        color_palettes:
+          - id: primary_hero
+            label: "Primary Hero (Red, Blue, Yellow)"
+          - id: duotone
+            label: "Duotone (Strict two-color printing limit)"
+
+  # --- MODERN & DIGITAL STYLES ---
+  - id: modern_cinematic
+    label: "Comic Book: Modern Cinematic"
+    description: "High detail, realistic lighting, and digital painting techniques."
+    lighting_moods:
+      - id: volumetric_lighting
+        label: "Volumetric Lighting (God Rays)"
+        description: "Visible beams of light breaking through clouds or debris."
+        color_palettes:
+          - id: cold_mystery
+            label: "Cold Mystery (Icy Blues, Teals, Desaturated Purples)"
+          - id: urban_gritty
+            label: "Urban Gritty (Olive, Rust, Slate)"
+      - id: hard_rim
+        label: "Hard Rim Lighting"
+        description: "Bright line of light tracing silhouettes in dark environments."
+        color_palettes:
+          - id: high_tension
+            label: "High Tension (Orange & Blue)"
+          - id: electric_night
+            label: "Electric Night (Navy, Neon Pink, Acid Green)"
+
+  - id: cyberpunk
+    label: "Comic Book: Cyberpunk / Synthwave"
+    description: "Neon colors, high-contrast shadows, and futuristic tech."
+    lighting_moods:
+      - id: neon_saturation
+        label: "Neon Saturation"
+        description: "Vibrant, multi-colored light reflecting off wet/metallic surfaces."
+        color_palettes:
+          - id: electric_night
+            label: "Electric Night (Navy, Neon Pink, Acid Green)"
+          - id: synthwave
+            label: "Synthwave (Magenta, Violet, Burnt Orange)"
+      - id: hard_rim
+        label: "Hard Rim Lighting"
+        description: "Bright neon outlines against pitch black."
+        color_palettes:
+          - id: high_contrast_tech
+            label: "High-Contrast Tech (Pure Black & Cyan)"
+
+  - id: noir
+    label: "Comic Book: Noir / Sin City"
+    description: "Stark, high-contrast black and white with minimal grayscale."
+    lighting_moods:
+      - id: chiaroscuro
+        label: "Chiaroscuro"
+        description: "Extreme contrasts between stark light and pitch black."
+        color_palettes:
+          - id: pure_bw
+            label: "Strict Black & White (No Grays)"
+          - id: monochromatic_pop
+            label: "Black & White with Crimson Red Pop"
+      - id: spotlight_interrogation
+        label: "Spotlight / Interrogation"
+        description: "Single harsh overhead light source."
+        color_palettes:
+          - id: pure_bw
+            label: "Strict Black & White (No Grays)"
+      - id: raking_light
+        label: "Raking Side Light"
+        description: "Low-angle side light revealing textures like brick or rain."
+        color_palettes:
+          - id: urban_gritty
+            label: "Urban Gritty (Olive, Rust, Slate)"
+          - id: pure_bw
+            label: "Strict Black & White (No Grays)"
+
+  # --- GLOBAL & ALTERNATIVE STYLES ---
+  - id: manga
+    label: "Comic Book: Manga (Japanese)"
+    description: "Expressive features, speed lines, and screentone shading."
+    lighting_moods:
+      - id: soft_diffused
+        label: "Soft Diffused Light"
+        description: "Flat, even lighting focusing on character expressions."
+        color_palettes:
+          - id: grayscale
+            label: "Grayscale / Screentone Patterns"
+          - id: pastel_whimsy
+            label: "Pastel Whimsy (Mint, Lavender, Peach)"
+      - id: action_burst
+        label: "Action Burst (Speed Lines)"
+        description: "High-energy directional focus lines."
+        color_palettes:
+          - id: grayscale
+            label: "Grayscale / Screentone Patterns"
+          - id: monochromatic_pop
+            label: "Grayscale with One Pop Color"
+
+  - id: franco_belgian
+    label: "Comic Book: Franco-Belgian (Ligne Claire)"
+    description: "Strong, continuous outlines of equal width and vivid colors."
+    lighting_moods:
+      - id: flat_bright
+        label: "Flat & Bright"
+        description: "Clear, shadowless lighting emphasizing clean lines."
+        color_palettes:
+          - id: vintage_newsprint
+            label: "Vintage Newsprint (Muted flat colors)"
+          - id: pastel_whimsy
+            label: "Pastel Whimsy (Mint, Lavender, Peach)"
+
+  - id: euro_comics
+    label: "Euro-Comics (Moebius Style)"
+    description: "Highly detailed, surreal fine-line work."
+    lighting_moods:
+      - id: golden_hour
+        label: "Golden Hour"
+        description: "Warm, low-angle light softening the surreal landscapes."
+        color_palettes:
+          - id: dusty_western
+            label: "Dusty Western (Ochre, Terracotta, Sandstone)"
+          - id: pastel_whimsy
+            label: "Pastel Whimsy (Mint, Lavender, Peach)"
+
+  # --- STYLIZED & EXPERIMENTAL ---
+  - id: silhouette_animation
+    label: "Silhouette Animation"
+    description: "High-contrast vector shadows against bright backgrounds."
+    lighting_moods:
+      - id: backlit
+        label: "Heavy Backlit"
+        description: "Light source directly behind the subject."
+        color_palettes:
+          - id: duotone
+            label: "Duotone (e.g., Black & Orange)"
+          - id: synthwave
+            label: "Synthwave (Magenta, Violet, Burnt Orange)"
+      - id: golden_hour_silhouette
+        label: "Golden Hour Silhouette"
+        description: "Warm, low-angle light casting long shadows."
+        color_palettes:
+          - id: dusty_western
+            label: "Dusty Warm (Ochre, Terracotta, Sandstone)"
+
+  - id: doodle_sketchbook
+    label: "Doodle / Sketchbook"
+    description: "Loose, energetic lines like a ballpoint pen or marker."
+    lighting_moods:
+      - id: soft_diffused
+        label: "Soft Diffused"
+        description: "Flat, overcast look with no harsh shadows."
+        color_palettes:
+          - id: pastel_whimsy
+            label: "Pastel Whimsy (Mint, Lavender, Peach)"
+          - id: grayscale
+            label: "Pure Grayscale / Ink Only"
+      - id: spotlight_sketch
+        label: "Spotlight Sketch"
+        description: "Messy, cross-hatched shadows focusing on one area."
+        color_palettes:
+          - id: grayscale
+            label: "Pure Grayscale / Ink Only"
+          - id: monochromatic_pop
+            label: "Grayscale with One Pop Color"
+
+  - id: watercolor_comic
+    label: "Watercolor Comic"
+    description: "Soft edges and bleeding colors for a traditional painted feel."
+    lighting_moods:
+      - id: bioluminescence
+        label: "Bioluminescence"
+        description: "Soft, glowing light from natural or magical sources."
+        color_palettes:
+          - id: cold_mystery
+            label: "Cold Mystery (Icy Blues, Teals, Desaturated Purples)"
+          - id: pastel_whimsy
+            label: "Pastel Whimsy (Mint, Lavender, Peach)"
+      - id: soft_diffused
+        label: "Soft Diffused Light"
+        description: "Gentle, atmospheric lighting allowing watercolors to blend."
+        color_palettes:
+          - id: urban_gritty
+            label: "Earthy / Gritty (Olive, Rust, Slate)"
+          - id: dusty_western
+            label: "Dusty Western (Ochre, Terracotta, Sandstone)"

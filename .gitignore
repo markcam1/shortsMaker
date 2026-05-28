@@ -1,0 +1,10 @@
+.env
+data/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+frontend/node_modules/
+frontend/dist/
+FUNCTIONAL_SPEC.md

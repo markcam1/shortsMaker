@@ -1,0 +1,26 @@
+storage:
+  backend: file   # options: file | sqlite (Phase 2)
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-6
+
+image_models:
+  - id: gemini-flash-image
+    name: "Gemini 2.5 Flash Image"
+    provider: google
+    model: gemini-2.5-flash-image
+    api: generate_content
+    num_images: 4
+  - id: imagen4
+    name: "Imagen 4"
+    provider: google
+    model: imagen-4.0-generate-001
+    api: generate_images
+    num_images: 4
+  - id: imagen4-fast
+    name: "Imagen 4 Fast"
+    provider: google
+    model: imagen-4.0-fast-generate-001
+    api: generate_images
+    num_images: 4
