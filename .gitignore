@@ -8,6 +8,7 @@ __pycache__/
 frontend/node_modules/
 frontend/dist/
 FUNCTIONAL_SPEC.md
+shortsMaker_spec.md
 content/
 *_Screenshot*.png
 blackout_periods.png
