@@ -4,13 +4,15 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from backend.models.schemas import (
-    Scene,
+    Scene, FormInput,
     GenerateImagesRequest,
     GenerateImagesResponse,
     AcceptImageRequest,
+    ParsedItem,
 )
 from backend.services.image_service import generate_images
 from backend.storage import get_storage
+from backend.config import IMAGE_MODELS
 
 router = APIRouter(prefix="/api/projects/{project_id}")
 
@@ -119,3 +121,44 @@ def serve_accepted_image(project_id: str, scene_id: str):
     if not path.exists():
         raise HTTPException(404, "Image not found")
     return FileResponse(str(path), media_type="image/png")
+
+
+class ParseScenesRequest(APIRouter.__class__):
+    pass
+
+
+from pydantic import BaseModel
+
+class _ParseScenesBody(BaseModel):
+    items: list[ParsedItem]
+
+
+@router.post("/scenes/parse", response_model=list[Scene])
+def parse_scenes(project_id: str, body: _ParseScenesBody):
+    """Create or update draft Scenes with form_input.subject pre-filled from parser items."""
+    storage = get_storage()
+    try:
+        project = storage.load_project(project_id)
+    except FileNotFoundError:
+        raise HTTPException(404, "Project not found")
+
+    default_model = IMAGE_MODELS[0]["id"] if IMAGE_MODELS else ""
+    created = []
+    for i, item in enumerate(body.items):
+        form = FormInput(
+            subject=item.term,
+            action="",
+            background="",
+            style="",
+            lighting_mood="",
+            color="",
+            image_model=default_model,
+        )
+        scene = Scene(project_id=project_id, order=len(project.scene_ids) + i, form_input=form)
+        storage.save_scene(scene)
+        if scene.id not in project.scene_ids:
+            project.scene_ids.append(scene.id)
+        created.append(scene)
+
+    storage.save_project(project)
+    return created

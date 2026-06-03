@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import projects, prompts, images
+from backend.routers import projects, prompts, images, quotes
 
-app = FastAPI(title="Storyboard Maker API")
+app = FastAPI(title="shortsMaker API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,6 +15,7 @@ app.add_middleware(
 app.include_router(projects.router)
 app.include_router(prompts.router)
 app.include_router(images.router)
+app.include_router(quotes.router)
 
 
 @app.get("/health")

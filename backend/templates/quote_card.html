@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face {
+    font-family: 'inter-bold';
+    src: url('{{INTER_BOLD_URL}}');
+    font-weight: bold;
+  }
+  @font-face {
+    font-family: 'inter-regular';
+    src: url('{{INTER_REGULAR_URL}}');
+    font-weight: normal;
+  }
+  @font-face {
+    font-family: 'playfair-bold';
+    src: url('{{PLAYFAIR_BOLD_URL}}');
+    font-weight: bold;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: {{WIDTH}}px;
+    height: {{HEIGHT}}px;
+    overflow: hidden;
+  }
+
+  body {
+    background: {{BG_CSS}};
+    display: flex;
+    align-items: center;
+    justify-content: {{JUSTIFY}};
+    padding: {{SAFE_PX}}px {{SIDE_PX}}px;
+  }
+
+  .card {
+    width: 100%;
+    text-align: {{ALIGNMENT}};
+  }
+
+  .term {
+    font-family: '{{TERM_FONT}}', serif;
+    font-size: {{TERM_SIZE}}px;
+    color: {{TEXT_COLOR}};
+    line-height: 1.1;
+    word-break: break-word;
+    margin-bottom: 0.5em;
+  }
+
+  .divider {
+    width: {{DIVIDER_WIDTH}};
+    height: 3px;
+    background: {{TEXT_COLOR}};
+    opacity: 0.4;
+    margin: 0.5em {{DIVIDER_MARGIN}} 0.7em;
+  }
+
+  .body {
+    font-family: '{{BODY_FONT}}', sans-serif;
+    font-size: {{BODY_SIZE}}px;
+    color: {{TEXT_COLOR}};
+    opacity: 0.9;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+</style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="term" id="term">{{TERM}}</div>
+    <div class="divider"></div>
+    <div class="body" id="body">{{BODY}}</div>
+  </div>
+<script>
+  // Bidirectional font sizing: grow to fill ~65% of safe canvas, then shrink if overflow
+  (function() {
+    var body    = document.getElementById('body');
+    var term    = document.getElementById('term');
+    var card    = document.getElementById('card');
+    var maxH    = {{CONTENT_HEIGHT}};
+    var targetH = Math.round(maxH * 0.65);
+    var minFont = 14;
+    var maxBody = Math.round({{BODY_SIZE}} * 2.5);
+    var maxTerm = Math.round({{TERM_SIZE}} * 2);
+    var ratio   = {{TERM_SIZE}} / {{BODY_SIZE}};
+    var size    = {{BODY_SIZE}};
+    while (card.scrollHeight < targetH && size < maxBody) {
+      size += 2;
+      body.style.fontSize = size + 'px';
+      term.style.fontSize = Math.min(Math.round(size * ratio), maxTerm) + 'px';
+    }
+    while (card.scrollHeight > maxH && size > minFont) {
+      size -= 2;
+      body.style.fontSize = size + 'px';
+      term.style.fontSize = Math.round(size * ratio) + 'px';
+    }
+  })();
+</script>
+</body>
+</html>

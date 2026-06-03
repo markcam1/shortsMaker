@@ -2,8 +2,30 @@ storage:
   backend: file   # options: file | sqlite (Phase 2)
 
 llm:
-  provider: anthropic
-  model: claude-sonnet-4-6
+  global: anthropic
+  providers:
+    anthropic: { model: claude-sonnet-4-6 }
+    gemini:    { model: gemini-2.5-flash }
+    ollama:    { model: llama2, base_url: "http://localhost:11434" }
+  tasks:
+    summarize:       global
+    prompt_creation: global
+    # Override examples (uncomment to enable):
+    # summarize: gemini
+    # prompt_creation: "ollama:llama2"
+
+content_source:
+  type: upload            # upload | configured_file
+  path: ./content/Glossary.txt
+
+output:
+  aspects:
+    "9:16": [1080, 1920]
+    "16:9": [1920, 1080]
+  default_aspect: "9:16"
+
+overlay:
+  engine: html            # html (Playwright) | pillow
 
 image_models:
   - id: gemini-flash-image

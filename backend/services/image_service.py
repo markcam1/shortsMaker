@@ -5,6 +5,11 @@ from backend.config import GOOGLE_API_KEY, IMAGE_MODELS
 
 _client: genai.Client | None = None
 
+_ASPECT_RATIO_MAP = {
+    "9:16": "9:16",
+    "16:9": "16:9",
+}
+
 
 def _get_client() -> genai.Client:
     global _client
@@ -26,16 +31,20 @@ def _via_generate_content(
     prompt: str,
     num_images: int,
     reference_image_path: Path | None = None,
+    aspect: str = "9:16",
 ) -> list[bytes]:
     """For Gemini models that support image output via generate_content."""
+    aspect_hint = f" Aspect ratio: {aspect}." if aspect else ""
+    full_prompt = prompt + aspect_hint
+
     if reference_image_path and reference_image_path.exists():
         image_bytes = reference_image_path.read_bytes()
         contents = [
-            prompt,
+            full_prompt,
             types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
         ]
     else:
-        contents = prompt
+        contents = full_prompt
 
     results = []
     for _ in range(num_images):
@@ -53,12 +62,22 @@ def _via_generate_content(
     return results
 
 
-def _via_generate_images(client: genai.Client, model_name: str, prompt: str, num_images: int) -> list[bytes]:
+def _via_generate_images(
+    client: genai.Client,
+    model_name: str,
+    prompt: str,
+    num_images: int,
+    aspect: str = "9:16",
+) -> list[bytes]:
     """For Imagen models that use the generate_images endpoint."""
+    aspect_ratio = _ASPECT_RATIO_MAP.get(aspect, "9:16")
     response = client.models.generate_images(
         model=model_name,
         prompt=prompt,
-        config=types.GenerateImagesConfig(number_of_images=num_images),
+        config=types.GenerateImagesConfig(
+            number_of_images=num_images,
+            aspect_ratio=aspect_ratio,
+        ),
     )
     return [img.image.image_bytes for img in response.generated_images]
 
@@ -68,6 +87,7 @@ def generate_images(
     model_id: str,
     candidates_dir: Path,
     reference_image_path: Path | None = None,
+    aspect: str = "9:16",
 ) -> list[Path]:
     """
     Generates images and saves them as PNG files under candidates_dir.
@@ -82,9 +102,9 @@ def generate_images(
     client = _get_client()
 
     if api == "generate_images":
-        image_bytes_list = _via_generate_images(client, model_name, prompt, num_images)
+        image_bytes_list = _via_generate_images(client, model_name, prompt, num_images, aspect)
     else:
-        image_bytes_list = _via_generate_content(client, model_name, prompt, num_images, reference_image_path)
+        image_bytes_list = _via_generate_content(client, model_name, prompt, num_images, reference_image_path, aspect)
 
     if not image_bytes_list:
         raise RuntimeError("Image model returned no images for this prompt.")

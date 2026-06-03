@@ -232,3 +232,81 @@ styles:
             label: "Earthy / Gritty (Olive, Rust, Slate)"
           - id: dusty_western
             label: "Dusty Western (Ochre, Terracotta, Sandstone)"
+
+templates:
+  - id: clean_center
+    label: "Clean Center"
+    description: "Centered layout with generous padding — ideal for short definitions."
+    safe_area_pct: 13
+    alignment: center
+    term_size_pt: 52
+    body_size_pt: 26
+    max_chars: 220
+    color_schemes:
+      - id: dark_ink
+        label: "Dark Ink"
+        text_color: "#FFFFFF"
+        bg_type: solid
+        bg_value: "#1A1A2E"
+        font_pairings:
+          - id: inter_inter
+            label: "Inter / Inter"
+            term_font: inter-bold
+            body_font: inter-regular
+          - id: playfair_inter
+            label: "Playfair / Inter"
+            term_font: playfair-bold
+            body_font: inter-regular
+      - id: warm_cream
+        label: "Warm Cream"
+        text_color: "#2C2C2C"
+        bg_type: solid
+        bg_value: "#FAF3E0"
+        font_pairings:
+          - id: playfair_inter
+            label: "Playfair / Inter"
+            term_font: playfair-bold
+            body_font: inter-regular
+          - id: inter_inter
+            label: "Inter / Inter"
+            term_font: inter-bold
+            body_font: inter-regular
+      - id: midnight_blue
+        label: "Midnight Blue"
+        text_color: "#E8F4FD"
+        bg_type: solid
+        bg_value: "#0D1B2A"
+        font_pairings:
+          - id: inter_inter
+            label: "Inter / Inter"
+            term_font: inter-bold
+            body_font: inter-regular
+  - id: bold_left
+    label: "Bold Left"
+    description: "Left-aligned with large term at top — punchy financial card style."
+    safe_area_pct: 13
+    alignment: left
+    term_size_pt: 56
+    body_size_pt: 24
+    max_chars: 200
+    color_schemes:
+      - id: charcoal
+        label: "Charcoal"
+        text_color: "#FFFFFF"
+        bg_type: solid
+        bg_value: "#2D2D2D"
+        font_pairings:
+          - id: inter_inter
+            label: "Inter / Inter"
+            term_font: inter-bold
+            body_font: inter-regular
+      - id: forest_green
+        label: "Forest Green"
+        text_color: "#F0FFF4"
+        bg_type: solid
+        bg_value: "#1B4332"
+        font_pairings:
+          - id: inter_inter
+            label: "Inter / Inter"
+            term_font: inter-bold
+            body_font: inter-regular
