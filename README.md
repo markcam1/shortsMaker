@@ -19,19 +19,24 @@ cd frontend && npm install
 
 ## Running
 
-Open two terminals from the project root:
-
-**Terminal 1 — backend:**
 ```bash
-uv run uvicorn backend.main:app --reload
-```
-
-**Terminal 2 — frontend:**
-```bash
-cd frontend && npm run dev
+./dev-start.sh   # start backend + frontend in the background
+./dev-stop.sh    # stop both servers
 ```
 
 Open [http://localhost:5173](http://localhost:5173).
+
+<details>
+<summary>Manual (two terminals)</summary>
+
+```bash
+# Terminal 1 — backend (auto-reloads on save)
+uv run uvicorn backend.main:app --reload
+
+# Terminal 2 — frontend (Vite HMR)
+cd frontend && npm run dev
+```
+</details>
 
 ## Workflows
 
@@ -51,6 +56,17 @@ upload file → parse → LLM summarize → review summary
            → accept card → export zip
 ```
 
+## Project management
+
+The home page gives you two paths: **New Project** (upload a file and pick a format) or **My Library** (browse all past projects). From the library you can:
+
+- **Open** — resume any project at its last step
+- **Rename** — inline edit
+- **Duplicate** — deep copy with fresh IDs; all accepted images are preserved
+- **Delete** — confirmation dialog requires you to type the project name
+
+Browser back/forward buttons work via URL hash routing (`#/project/{id}/{STEP}`).
+
 ## Project layout
 
 ```
@@ -61,7 +77,7 @@ backend/
   models/           Pydantic schemas
 frontend/src/
   api/              Typed API client
-  components/       UI screens (one per workflow step)
+  components/       UI screens — HomePage, LibraryPage, plus one per workflow step
   context/          WorkflowContext state machine
 config.yaml         LLM routing + image model registry
 choice.yaml         Style / template / color scheme options

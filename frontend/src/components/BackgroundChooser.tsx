@@ -25,21 +25,43 @@ export function BackgroundChooser() {
   useEffect(() => {
     api.templates.list().then(ts => {
       setTemplates(ts);
-      if (ts.length > 0) {
-        setSelectedTemplate(ts[0]);
-        if (ts[0].color_schemes.length > 0) {
-          setSelectedScheme(ts[0].color_schemes[0]);
-          if (ts[0].color_schemes[0].font_pairings.length > 0) {
-            setSelectedFont(ts[0].color_schemes[0].font_pairings[0]);
+      const currentQuote = state.quotePosts.find(q => q.id === state.quoteId);
+      let t = ts[0];
+      if (currentQuote?.template_id) {
+        t = ts.find(x => x.id === currentQuote.template_id) || ts[0];
+      }
+      if (t) {
+        setSelectedTemplate(t);
+        let cs = t.color_schemes[0];
+        if (currentQuote?.color_scheme_id) {
+          cs = t.color_schemes.find(x => x.id === currentQuote.color_scheme_id) || t.color_schemes[0];
+        }
+        if (cs) {
+          setSelectedScheme(cs);
+          let fp = cs.font_pairings[0];
+          if (currentQuote?.font_pairing_id) {
+            fp = cs.font_pairings.find(x => x.id === currentQuote.font_pairing_id) || cs.font_pairings[0];
+          }
+          if (fp) {
+            setSelectedFont(fp);
           }
         }
       }
     });
     api.models.list().then(ms => {
       setImageModels(ms);
-      if (ms.length > 0) setSelectedModelId(ms[0].id);
+      const currentQuote = state.quotePosts.find(q => q.id === state.quoteId);
+      if (currentQuote?.background_mode) {
+        setBgMode(currentQuote.background_mode);
+      }
+      if (currentQuote?.background_desc) {
+        setBgDesc(currentQuote.background_desc);
+      }
+      if (ms.length > 0) {
+        setSelectedModelId(ms[0].id);
+      }
     });
-  }, []);
+  }, [state.quoteId, state.quotePosts]);
 
   async function handleGeneratePrompt() {
     if (!state.project || !state.quoteId) return;

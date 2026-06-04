@@ -52,7 +52,7 @@ def generate_scene_images(project_id: str, req: GenerateImagesRequest):
         if ref_path.exists():
             reference_image_path = ref_path
 
-    paths = generate_images(req.accepted_prompt, req.image_model_id, candidates_dir, reference_image_path)
+    paths = generate_images(req.accepted_prompt, req.image_model_id, candidates_dir, reference_image_path, project.aspect)
 
     urls = [
         f"/api/projects/{project_id}/scenes/{scene.id}/candidates/{i}"

@@ -44,6 +44,10 @@ export const api = {
     get: (id: string) => request<Project>(`/projects/${id}`),
     delete: (id: string) =>
       request<{ ok: boolean }>(`/projects/${id}`, { method: 'DELETE' }),
+    rename: (id: string, name: string) =>
+      request<Project>(`/projects/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+    duplicate: (id: string) =>
+      request<Project>(`/projects/${id}/duplicate`, { method: 'POST' }),
     export: (id: string) => fetch(`${BASE}/projects/${id}/export`),
   },
   prompts: {

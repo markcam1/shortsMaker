@@ -9,11 +9,11 @@ class GeminiProvider:
         self._model = model
 
     def complete(self, *, system: str, user: str, max_tokens: int) -> str:
-        combined = f"{system}\n\n{user}"
         response = self._client.models.generate_content(
             model=self._model,
-            contents=combined,
+            contents=user,
             config=types.GenerateContentConfig(
+                system_instruction=system,
                 response_modalities=["TEXT"],
                 max_output_tokens=max_tokens,
             ),

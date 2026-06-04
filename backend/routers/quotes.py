@@ -246,10 +246,13 @@ def accept_quote(project_id: str, quote_id: str, req: AcceptQuoteRequest):
     dest = storage.quote_dir(project_id, quote_id) / "image.png"
     shutil.copy2(src, dest)
 
-    quote.summary = req.summary
-    quote.template_id = req.template_id
-    quote.color_scheme_id = req.color_scheme_id
-    quote.font_pairing_id = req.font_pairing_id
+    quote.summary = req.summary or quote.summary
+    if req.template_id:
+        quote.template_id = req.template_id
+    if req.color_scheme_id:
+        quote.color_scheme_id = req.color_scheme_id
+    if req.font_pairing_id:
+        quote.font_pairing_id = req.font_pairing_id
     quote.image_filename = str(dest.relative_to(storage.project_dir(project_id).parent.parent))
     storage.save_quote(quote)
 

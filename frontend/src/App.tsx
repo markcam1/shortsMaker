@@ -1,6 +1,6 @@
+import { useState, useEffect } from 'react';
 import { WorkflowProvider, useWorkflow } from './context/WorkflowContext';
 import { SourcePicker } from './components/SourcePicker';
-import { ProjectSelector } from './components/ProjectSelector';
 import { FormatChooser } from './components/FormatChooser';
 import { EntryList } from './components/EntryList';
 import { ImageCreationForm } from './components/ImageCreationForm';
@@ -11,6 +11,12 @@ import { SummaryReview } from './components/SummaryReview';
 import { BackgroundChooser } from './components/BackgroundChooser';
 import { CardGallery } from './components/CardGallery';
 import { CollectionView } from './components/CollectionView';
+import { HomePage } from './components/HomePage';
+import { LibraryPage } from './components/LibraryPage';
+import { api } from './api/client';
+import type { Project } from './api/types';
+
+type AppPage = 'home' | 'library' | 'content';
 
 const IMAGE_STEPS = ['FORM', 'PROMPT_REVIEW', 'IMAGE_REVIEW', 'STORYBOARD'];
 const STEP_LABELS: Record<string, string> = {
@@ -55,24 +61,155 @@ function StepIndicator({ step, format }: { step: string; format: string | null }
 
 const PRE_PROJECT_STEPS = ['SOURCE', 'FORMAT'];
 
-function AppInner() {
+function AppInner({
+  appPage,
+  setAppPage,
+}: {
+  appPage: AppPage;
+  setAppPage: (p: AppPage) => void;
+}) {
   const { state, dispatch } = useWorkflow();
 
+  // 1. Sync React State -> URL Hash
+  useEffect(() => {
+    let targetHash = '';
+    if (appPage === 'home') {
+      targetHash = '#/home';
+    } else if (appPage === 'library') {
+      targetHash = '#/library';
+    } else if (appPage === 'content') {
+      if (state.project) {
+        targetHash = `#/project/${state.project.id}/${state.step}`;
+      } else {
+        targetHash = `#/new-project/${state.step}`;
+      }
+    }
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  }, [appPage, state.step, state.project?.id]);
+
+  // 2. Sync URL Hash -> React State (handles back/forward buttons & direct deep links)
+  useEffect(() => {
+    let isMounted = true;
+
+    async function handleHashChange() {
+      const hash = window.location.hash;
+      if (!hash || hash === '#/home') {
+        if (appPage !== 'home') setAppPage('home');
+      } else if (hash === '#/library') {
+        if (appPage !== 'library') setAppPage('library');
+      } else if (hash.startsWith('#/new-project/')) {
+        const step = hash.replace('#/new-project/', '');
+        if (appPage !== 'content') setAppPage('content');
+        if (state.step !== step) {
+          dispatch({ type: 'SET_STEP', step: step as any });
+        }
+      } else if (hash.startsWith('#/project/')) {
+        const parts = hash.replace('#/project/', '').split('/');
+        const projectId = parts[0];
+        const step = parts[1];
+        if (appPage !== 'content') setAppPage('content');
+
+        if (!state.project || state.project.id !== projectId) {
+          try {
+            const p = await api.projects.get(projectId);
+            if (!isMounted) return;
+            dispatch({ type: 'SET_PROJECT', project: p });
+            dispatch({ type: 'SET_FORMAT', format: p.format });
+            dispatch({ type: 'SET_ASPECT', aspect: p.aspect });
+            if (p.format === 'image') {
+              const scenes = await api.images.listScenes(p.id);
+              if (!isMounted) return;
+              dispatch({ type: 'SET_SCENES', scenes });
+            } else {
+              const posts = await api.quotes.list(p.id);
+              if (!isMounted) return;
+              dispatch({ type: 'SET_QUOTE_POSTS', posts });
+            }
+          } catch (e) {
+            console.error('Failed to load project from hash:', e);
+            if (isMounted) setAppPage('home');
+            return;
+          }
+        }
+
+        if (state.step !== step) {
+          dispatch({ type: 'SET_STEP', step: step as any });
+        }
+      }
+    }
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [appPage, state.step, state.project?.id, dispatch, setAppPage]);
+
+  async function openProject(p: Project) {
+    dispatch({ type: 'SET_PROJECT', project: p });
+    dispatch({ type: 'SET_FORMAT', format: p.format });
+    dispatch({ type: 'SET_ASPECT', aspect: p.aspect });
+    if (p.format === 'image') {
+      const scenes = await api.images.listScenes(p.id);
+      dispatch({ type: 'SET_SCENES', scenes });
+      dispatch({ type: 'SET_STEP', step: 'STORYBOARD' });
+    } else {
+      const posts = await api.quotes.list(p.id);
+      dispatch({ type: 'SET_QUOTE_POSTS', posts });
+      dispatch({ type: 'SET_STEP', step: 'COLLECTION' });
+    }
+    setAppPage('content');
+  }
+
+  if (appPage === 'home') {
+    return (
+      <HomePage
+        onNewProject={() => {
+          dispatch({ type: 'RESET_TO_SOURCE' });
+          setAppPage('content');
+        }}
+        onLibrary={() => setAppPage('library')}
+        onOpen={openProject}
+      />
+    );
+  }
+
+  if (appPage === 'library') {
+    return (
+      <LibraryPage
+        onBack={() => setAppPage('home')}
+        onOpen={openProject}
+      />
+    );
+  }
+
+  // content page — SOURCE / FORMAT pre-project, or active workflow
   if (PRE_PROJECT_STEPS.includes(state.step) || !state.project) {
     return (
-      <div className="flex min-h-screen items-start justify-center p-8">
-        <div className="w-full max-w-lg">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-white">shortsMaker</h1>
+      <div className="flex min-h-screen flex-col bg-[#0f0f11]">
+        {/* Header */}
+        <header className="flex items-center gap-4 border-b border-gray-800 px-4 py-4 sm:px-8">
+          <button
+            onClick={() => setAppPage('home')}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 hover:bg-purple-600/20 text-2xl transition shadow-sm cursor-pointer"
+            title="Go Home"
+          >
+            🎬
+          </button>
+          <h1 className="flex-1 text-lg font-bold text-white ml-2">New Project</h1>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 flex items-start justify-center p-8">
+          <div className="w-full max-w-lg">
+            {state.step === 'SOURCE' && <SourcePicker />}
+            {state.step === 'FORMAT' && <FormatChooser />}
           </div>
-          {state.step === 'SOURCE' && (
-            <>
-              <SourcePicker />
-              <ProjectSelector />
-            </>
-          )}
-          {state.step === 'FORMAT' && <FormatChooser />}
-        </div>
+        </main>
       </div>
     );
   }
@@ -85,10 +222,10 @@ function AppInner() {
       <aside className="flex w-64 shrink-0 flex-col gap-4 border-r border-gray-800 p-5">
         <div>
           <button
-            onClick={() => dispatch({ type: 'RESET_TO_SOURCE' })}
-            className="text-xs text-gray-600 hover:text-gray-400"
+            onClick={() => setAppPage('home')}
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition cursor-pointer"
           >
-            ← New project
+            🎬 Home
           </button>
           <h3 className="mt-1 font-semibold text-white truncate">{state.project.name}</h3>
           <p className="text-xs text-gray-600">
@@ -131,8 +268,20 @@ function AppInner() {
             {state.quotePosts.map((q, i) => (
               <button
                 key={q.id}
-                onClick={() => dispatch({ type: 'SET_STEP', step: 'SUMMARY_REVIEW' })}
-                className="flex items-center gap-2 rounded-lg border border-gray-800 p-2 w-full text-left hover:border-gray-700 hover:bg-gray-900/60 transition"
+                onClick={() => {
+                  dispatch({ type: 'SET_QUOTE', quoteId: q.id });
+                  if (q.summary) {
+                    dispatch({ type: 'SET_SUMMARY', summary: q.summary });
+                    dispatch({ type: 'SET_STEP', step: 'BACKGROUND_CHOICE' });
+                  } else {
+                    dispatch({ type: 'SET_STEP', step: 'SUMMARY_REVIEW' });
+                  }
+                }}
+                className={`flex items-center gap-2 rounded-lg border p-2 w-full text-left transition ${
+                  state.quoteId === q.id
+                    ? 'border-purple-500 bg-purple-950/20'
+                    : 'border-gray-800 hover:border-gray-700 hover:bg-gray-900/60'
+                }`}
               >
                 {q.image_filename ? (
                   <img
@@ -162,7 +311,6 @@ function AppInner() {
           <div className="w-full max-w-xl">
             {state.step === 'ENTRY_REVIEW' && <EntryList />}
 
-            {/* Image post steps */}
             {state.step === 'IMAGE_GENERATION' && (
               <div className="flex flex-col items-center gap-4 py-20 text-center">
                 <div className="h-10 w-10 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
@@ -174,7 +322,6 @@ function AppInner() {
             {state.step === 'IMAGE_REVIEW' && <ImageGallery />}
             {state.step === 'STORYBOARD' && <StoryboardView />}
 
-            {/* Quote post steps */}
             {state.step === 'SUMMARY_REVIEW' && <SummaryReview />}
             {state.step === 'BACKGROUND_CHOICE' && <BackgroundChooser />}
             {state.step === 'CARD_REVIEW' && <CardGallery />}
@@ -187,9 +334,11 @@ function AppInner() {
 }
 
 export default function App() {
+  const [appPage, setAppPage] = useState<AppPage>('home');
+
   return (
     <WorkflowProvider>
-      <AppInner />
+      <AppInner appPage={appPage} setAppPage={setAppPage} />
     </WorkflowProvider>
   );
 }

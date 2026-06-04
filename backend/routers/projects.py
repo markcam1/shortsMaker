@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from pydantic import BaseModel
 from typing import Optional
 from backend.models.schemas import (
     Project, CreateProjectRequest,
@@ -158,3 +159,29 @@ def get_project(project_id: str):
 def delete_project(project_id: str):
     get_storage().delete_project(project_id)
     return {"ok": True}
+
+
+class RenameRequest(BaseModel):
+    name: str
+
+
+@router.patch("/projects/{project_id}", response_model=Project)
+def rename_project(project_id: str, body: RenameRequest):
+    storage = get_storage()
+    try:
+        project = storage.load_project(project_id)
+    except FileNotFoundError:
+        raise HTTPException(404, "Project not found")
+    project.name = body.name
+    storage.save_project(project)
+    return project
+
+
+@router.post("/projects/{project_id}/duplicate", response_model=Project)
+def duplicate_project(project_id: str):
+    storage = get_storage()
+    try:
+        src = storage.load_project(project_id)
+    except FileNotFoundError:
+        raise HTTPException(404, "Project not found")
+    return storage.duplicate_project(project_id, f"Copy of {src.name}")

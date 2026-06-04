@@ -24,8 +24,16 @@ Copy `.env.example` to `.env` and fill in `ANTHROPIC_API_KEY` and `GOOGLE_API_KE
 
 ## Running the app
 
-Two processes must run simultaneously. Start from the project root (`shortsMaker/`):
+From the project root:
 
+```bash
+./dev-start.sh   # launches backend + frontend in the background; writes PIDs to .dev-pids
+./dev-stop.sh    # kills both processes and removes .dev-pids
+```
+
+Frontend: http://localhost:5173 — proxies `/api/*` to http://localhost:8000.
+
+Manual alternative (two terminals):
 ```bash
 # Terminal 1 — backend (auto-reloads on save)
 uv run uvicorn backend.main:app --reload
@@ -33,8 +41,6 @@ uv run uvicorn backend.main:app --reload
 # Terminal 2 — frontend (Vite HMR)
 cd frontend && npm run dev
 ```
-
-Frontend: http://localhost:5173 — proxies `/api/*` to http://localhost:8000.
 
 ## Backend commands
 
@@ -90,26 +96,28 @@ upload file → POST /api/projects (format=quote)              → Project + dra
 
 - `config.py` — reads `.env` + `config.yaml` + `choice.yaml` at import time. Exposes `LLM_CONFIG`, `IMAGE_MODELS`, `STYLE_CHOICES`, `TEMPLATE_CHOICES`, `OUTPUT_ASPECTS`, `OVERLAY_ENGINE`, `DATA_ROOT`, API keys, and a `resolve_llm(task) -> (provider, model)` helper that implements the `global` / `<provider>` / `<provider>:<model>` resolution rules. **The `llm` block in `config.yaml` is the source of truth for LLM routing — never hardcode a provider in service code.**
 - `models/schemas.py` — single source of truth for Pydantic models. `Project` carries `format`, `aspect`, `source_filename`, plus `scene_ids` and `quote_ids`. `Scene` and `FormInput` are unchanged from storyboard_maker (Image Posts reuse them verbatim). `QuotePost` parallels `Scene` with `term`, `raw_body`, `summary`, `background_mode`, `background_desc`, optional prompt fields, and template selections.
-- `storage/file_storage.py` — `StorageService` Protocol + `FileStorage` impl. Adds a `quotes/{uuid}/` sibling to `scenes/{uuid}/`. `mkdir -p` on access; `candidates/*.png` cleared on each regeneration. For Complex quotes, `background.png` is persisted separately from `image.png` so wording edits re-overlay without re-spending on Gemini. To add a database backend, implement the Protocol and swap the singleton in `storage/__init__.py`.
+- `storage/file_storage.py` — `StorageService` Protocol + `FileStorage` impl. Adds a `quotes/{uuid}/` sibling to `scenes/{uuid}/`. `mkdir -p` on access; `candidates/*.png` cleared on each regeneration. For Complex quotes, `background.png` is persisted separately from `image.png` so wording edits re-overlay without re-spending on Gemini. `duplicate_project(src_id, new_name)` uses `shutil.copytree` then walks the copy reassigning UUIDs and rewriting `image_filename` paths for every scene and quote. To add a database backend, implement the Protocol and swap the singleton in `storage/__init__.py`.
 - `services/parse_service.py` — `ContentSource` Protocol (`UploadSource` v1 primary; `ConfiguredFileSource` for batch/CI; future `DiscoveryEngineSource`). `Parser` Protocol with `QuotePostParser` (matches `**Term:** body` glossary format) and `ImagePostParser` (file → items → `FormInput.subject`). **Parsing never calls an LLM**; summarization is a separate step in the Quote pipeline.
 - `services/providers/` — `LLMProvider` Protocol + three impls: `AnthropicProvider` (uses the existing `anthropic` client), `GeminiProvider` (text mode via the already-present `google-genai` client; no new dep), `OllamaProvider` (`httpx` POST to `{base_url}/api/chat`; no SDK, no key; surfaces a clear error if unreachable). All implement `complete(*, system, user, max_tokens) -> str`.
 - `services/llm_service.py` — task-oriented wrapper. `get_provider(task)` calls `resolve_llm` and returns the provider. Public functions: `summarize(term, body, max_chars) -> str` and `generate_prompt(form_or_desc) -> (sent, generated)`. **Never instantiate a provider client directly elsewhere.**
 - `services/image_service.py` — unchanged dispatch on each image model's `api` field (`generate_content` vs `generate_images`). Now also serves Complex quote backgrounds (text-free prompt, open negative space). Reads the project's `aspect` and passes it to the Gemini/Imagen call so backgrounds aren't cropped. **Ollama is never used here** — image gen is Gemini/Imagen only.
 - `services/overlay_service.py` — `OverlayService` Protocol. Primary impl `HtmlOverlay` (Playwright/Chromium): renders an HTML template with injected `term`/`body`, applies safe-area + fonts + colors from the chosen template, auto-shrinks font to fit, screenshots at the aspect's pixel size. Background is either a Gemini PNG (Complex) or a `ColorSpec` solid/gradient (Simple). Fallback impl `PillowOverlay` (scrim + wrapped text). Engine chosen via `config.yaml` (`overlay.engine`).
-- `routers/projects.py` — config endpoints (`/api/config/models`, `/api/config/styles`, `/api/config/templates`, optional `/api/config/llm` for resolved task→provider display) + project CRUD. `POST /api/projects` accepts `format`, `aspect`, and the source upload.
+- `routers/projects.py` — config endpoints (`/api/config/models`, `/api/config/styles`, `/api/config/templates`, optional `/api/config/llm` for resolved task→provider display) + project CRUD. `POST /api/projects` accepts `format`, `aspect`, and the source upload. `PATCH /api/projects/{id}` renames a project. `POST /api/projects/{id}/duplicate` deep-copies the project directory with fresh UUIDs for the project, scenes, and quotes, and rewrites all `image_filename` paths.
 - `routers/prompts.py` — `POST /api/projects/{id}/prompt`. **Unchanged from storyboard_maker.** Used by Image Posts and Complex quote backgrounds; both route through `llm_service.generate_prompt` and therefore through the task router.
-- `routers/images.py` — image-post pipeline. **Unchanged from storyboard_maker** except for an added `POST /api/projects/{id}/scenes/parse` that creates draft Scenes with `form_input.subject` pre-filled from the `ImagePostParser`.
-- `routers/quotes.py` — quote-post pipeline: `POST .../quotes/parse`, `POST .../quotes/{qid}/summarize`, `POST .../quotes/{qid}/prompt` (Complex only), `POST .../quotes/{qid}/candidates`, `GET .../quotes/{qid}/candidates/{n}`, `POST .../quotes/{qid}/accept`, `GET .../quotes/{qid}/image`, `GET /api/projects/{id}/export` (zip).
+- `routers/images.py` — image-post pipeline. Added `POST /api/projects/{id}/scenes/parse` that creates draft Scenes with `form_input.subject` pre-filled from the `ImagePostParser`. `POST /api/projects/{id}/images` passes `project.aspect` to `generate_images` so 16:9 requests aren't silently defaulted to 9:16.
+- `routers/quotes.py` — quote-post pipeline: `POST .../quotes/parse`, `POST .../quotes/{qid}/summarize`, `POST .../quotes/{qid}/prompt` (Complex only), `POST .../quotes/{qid}/candidates`, `GET .../quotes/{qid}/candidates/{n}`, `POST .../quotes/{qid}/accept`, `GET .../quotes/{qid}/image`, `GET /api/projects/{id}/export` (zip). `accept_quote` only overwrites `template_id`, `color_scheme_id`, and `font_pairing_id` when the request sends non-empty values, preserving previously saved layout selections on re-accepts.
 
 ### Frontend (`frontend/src/`)
 
 - `context/WorkflowContext.tsx` — central state machine, persisted to `localStorage` under key **`shortsmaker_workflow`** (do not reuse the old `storyboard_workflow` key). State carries `format`, `aspect`, plus quote-specific fields (`quoteId`, `summary`, `backgroundMode`, `backgroundDesc`) alongside the existing image-post fields. `step` drives which component renders.
-- `api/client.ts` + `api/types.ts` — typed wrappers over `fetch`; all backend calls go through `api.*` functions.
+- `api/client.ts` + `api/types.ts` — typed wrappers over `fetch`; all backend calls go through `api.*` functions. Includes `projects.rename(id, name)` and `projects.duplicate(id)` for library management.
 - Components map 1:1 to workflow steps:
   - `SourcePicker` (SOURCE), `FormatChooser` (FORMAT), `EntryList` (ENTRY_REVIEW) — both branches.
   - `ImageCreationForm` (FORM), `PromptReview` (PROMPT_REVIEW), `ImageGallery` (IMAGE_REVIEW), `StoryboardView` (STORYBOARD) — **image branch, unchanged from storyboard_maker**; the only difference is `subject` arrives pre-filled.
-  - `SummaryReview` (SUMMARY_REVIEW), `BackgroundChooser` (BACKGROUND_CHOICE), `CardGallery` (CARD_REVIEW), `CollectionView` (COLLECTION) — quote branch.
-- `App.tsx` renders the sidebar (scene/quote thumbnails grouped by format) and routes between components based on `state.step` and `state.project.format`.
+  - `SummaryReview` (SUMMARY_REVIEW), `BackgroundChooser` (BACKGROUND_CHOICE), `CardGallery` (CARD_REVIEW), `CollectionView` (COLLECTION) — quote branch. `BackgroundChooser` prefills template/scheme/font/mode from the active quote's saved state when resuming an existing card.
+- `HomePage.tsx` — minimalist landing: "New Project" card + "My Library" card + up to 3 recent projects for quick resume.
+- `LibraryPage.tsx` — full project library with tile/list view toggle, inline rename, duplicate, and delete-with-name-confirmation (Radix Dialog). Thumbnails served from the first accepted scene/quote image.
+- `App.tsx` — top-level page router (`appPage: 'home' | 'library' | 'content'`), not persisted (refresh always returns to home). Syncs app state bidirectionally with URL hash (`#/home`, `#/library`, `#/new-project/{STEP}`, `#/project/{id}/{STEP}`) so browser back/forward and deep links work. Sidebar uses `🎬 Home` to return to the landing page; quote card clicks restore the active quote's step (skips to BACKGROUND_CHOICE if already summarized).
 
 ### Config-driven LLM routing (`config.yaml`)
 
