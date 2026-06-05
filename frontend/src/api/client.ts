@@ -99,12 +99,24 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ items }),
       }),
+    updateScene: (projectId: string, sceneId: string, subject: string) =>
+      request<Scene>(`/projects/${projectId}/scenes/${sceneId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ subject }),
+      }),
   },
   quotes: {
     list: (projectId: string) =>
       request<QuotePost[]>(`/projects/${projectId}/quotes`),
     get: (projectId: string, quoteId: string) =>
       request<QuotePost>(`/projects/${projectId}/quotes/${quoteId}`),
+    updateQuote: (projectId: string, quoteId: string, payload: { term: string; raw_body: string }) =>
+      request<QuotePost>(`/projects/${projectId}/quotes/${quoteId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      }),
+    delete: (projectId: string, quoteId: string) =>
+      request<{ ok: boolean }>(`/projects/${projectId}/quotes/${quoteId}`, { method: 'DELETE' }),
     summarize: (projectId: string, quoteId: string, templateId: string) =>
       request<SummarizeResponse>(`/projects/${projectId}/quotes/${quoteId}/summarize`, {
         method: 'POST',

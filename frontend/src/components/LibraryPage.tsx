@@ -249,15 +249,17 @@ export function LibraryPage({ onBack, onOpen }: Props) {
   return (
     <div className="flex min-h-screen flex-col bg-[#0f0f11]">
       {/* Header */}
-      <header className="flex items-center gap-4 border-b border-gray-800 px-4 py-4 sm:px-8">
-        <button
-          onClick={onBack}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 hover:bg-purple-600/20 text-2xl transition shadow-sm cursor-pointer"
-          title="Go Home"
-        >
-          🎬
-        </button>
-        <h1 className="flex-1 text-lg font-bold text-white ml-2">My Library</h1>
+      <header className="flex items-center justify-between border-b border-gray-800 px-4 py-4 sm:px-8 bg-[#0a0a0c]">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onBack}
+            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-600/10 hover:bg-purple-600/20 text-3xl transition shadow-md cursor-pointer shrink-0 border border-purple-500/10 hover:border-purple-500/30"
+            title="Go Home"
+          >
+            🎬
+          </button>
+          <h1 className="text-lg font-bold text-white ml-2">My Library</h1>
+        </div>
         {/* View toggle */}
         <div className="flex rounded-lg border border-gray-700 overflow-hidden">
           <button

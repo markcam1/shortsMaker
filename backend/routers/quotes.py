@@ -297,3 +297,43 @@ def export_project(project_id: str):
         media_type="application/zip",
         headers={"Content-Disposition": f'attachment; filename="{project.name}-cards.zip"'},
     )
+
+
+from pydantic import BaseModel
+
+class UpdateQuoteRequest(BaseModel):
+    term: str
+    raw_body: str
+
+
+@router.patch("/quotes/{quote_id}", response_model=QuotePost)
+def update_quote(project_id: str, quote_id: str, body: UpdateQuoteRequest):
+    storage = get_storage()
+    try:
+        quote = storage.load_quote(project_id, quote_id)
+    except FileNotFoundError:
+        raise HTTPException(404, "Quote not found")
+    quote.term = body.term
+    quote.raw_body = body.raw_body
+    storage.save_quote(quote)
+    return quote
+
+
+@router.delete("/quotes/{quote_id}")
+def delete_quote(project_id: str, quote_id: str):
+    storage = get_storage()
+    try:
+        project = storage.load_project(project_id)
+        storage.load_quote(project_id, quote_id)
+    except FileNotFoundError:
+        raise HTTPException(404, "Quote not found")
+
+    if quote_id in project.quote_ids:
+        project.quote_ids.remove(quote_id)
+        storage.save_project(project)
+
+    quote_dir = storage.quote_dir(project_id, quote_id)
+    if quote_dir.exists():
+        shutil.rmtree(quote_dir)
+
+    return {"ok": True}

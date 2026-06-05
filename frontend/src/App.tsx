@@ -13,6 +13,7 @@ import { CardGallery } from './components/CardGallery';
 import { CollectionView } from './components/CollectionView';
 import { HomePage } from './components/HomePage';
 import { LibraryPage } from './components/LibraryPage';
+import { EditableProjectName } from './components/EditableProjectName';
 import { api } from './api/client';
 import type { Project } from './api/types';
 
@@ -69,6 +70,7 @@ function AppInner({
   setAppPage: (p: AppPage) => void;
 }) {
   const { state, dispatch } = useWorkflow();
+  const [showSidebar, setShowSidebar] = useState(false);
 
   // 1. Sync React State -> URL Hash
   useEffect(() => {
@@ -192,20 +194,22 @@ function AppInner({
     return (
       <div className="flex min-h-screen flex-col bg-[#0f0f11]">
         {/* Header */}
-        <header className="flex items-center gap-4 border-b border-gray-800 px-4 py-4 sm:px-8">
+        <header className="flex items-center gap-4 border-b border-gray-800 px-4 py-4 sm:px-8 bg-[#0a0a0c]">
           <button
             onClick={() => setAppPage('home')}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 hover:bg-purple-600/20 text-2xl transition shadow-sm cursor-pointer"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-600/10 hover:bg-purple-600/20 text-3xl transition shadow-md cursor-pointer shrink-0 border border-purple-500/10 hover:border-purple-500/30"
             title="Go Home"
           >
             🎬
           </button>
-          <h1 className="flex-1 text-lg font-bold text-white ml-2">New Project</h1>
+          <div className="flex-1 ml-2">
+            <EditableProjectName />
+          </div>
         </header>
 
         {/* Content */}
         <main className="flex-1 flex items-start justify-center p-8">
-          <div className="w-full max-w-lg">
+          <div className="w-full max-w-5xl">
             {state.step === 'SOURCE' && <SourcePicker />}
             {state.step === 'FORMAT' && <FormatChooser />}
           </div>
@@ -217,118 +221,170 @@ function AppInner({
   const isImagePost = state.project.format === 'image';
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside className="flex w-64 shrink-0 flex-col gap-4 border-r border-gray-800 p-5">
-        <div>
+    <div className="flex min-h-screen flex-col bg-[#0f0f11]">
+      {/* Standardized Header */}
+      <header className="flex items-center justify-between border-b border-gray-800 px-4 py-4 sm:px-8 bg-[#0a0a0c] gap-4 z-10">
+        <div className="flex items-center gap-4 min-w-0">
           <button
             onClick={() => setAppPage('home')}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition cursor-pointer"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-600/10 hover:bg-purple-600/20 text-3xl transition shadow-md cursor-pointer shrink-0 border border-purple-500/10 hover:border-purple-500/30"
+            title="Go Home"
           >
-            🎬 Home
+            🎬
           </button>
-          <h3 className="mt-1 font-semibold text-white truncate">{state.project.name}</h3>
-          <p className="text-xs text-gray-600">
-            {state.project.format} · {state.project.aspect}
-          </p>
+          
+          <div className="flex flex-col min-w-0">
+            <EditableProjectName />
+            <span className="text-[10px] text-gray-500 mt-0.5 truncate">
+              {state.project.format === 'quote' ? '💬 Quote Post' : '🖼️ Image Post'} · {state.project.aspect}
+            </span>
+          </div>
         </div>
 
-        {isImagePost ? (
-          <div className="flex flex-col gap-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Scenes</p>
-            {state.scenes.length === 0 && (
-              <p className="text-xs text-gray-700 italic">No scenes yet</p>
-            )}
-            {state.scenes.map((scene, i) => (
-              <div
-                key={scene.id}
-                className="flex items-center gap-2 rounded-lg border border-gray-800 p-2"
-              >
-                <img
-                  src={`/api/projects/${scene.project_id}/scenes/${scene.id}/image`}
-                  alt=""
-                  className="h-10 w-14 rounded object-cover"
-                />
-                <span className="text-xs text-gray-400">Scene {i + 1}</span>
-              </div>
-            ))}
+        {/* Right side: Step Indicator and/or Mobile Menu Toggle */}
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="hidden sm:block">
+            <StepIndicator step={state.step} format={state.project.format} />
+          </div>
+          
+          <button
+            onClick={() => setShowSidebar(prev => !prev)}
+            className="md:hidden flex h-10 px-3 items-center gap-1.5 rounded-xl border border-gray-800 bg-gray-900/50 hover:bg-gray-800 text-xs font-semibold text-white transition cursor-pointer shadow-sm active:scale-95"
+          >
+            📋 {isImagePost ? 'Scenes' : 'Cards'}
+          </button>
+        </div>
+      </header>
+
+      {/* Main Body with Sidebar Drawer */}
+      <div className="flex flex-1 relative overflow-hidden">
+        {/* Backdrop for mobile drawer */}
+        {showSidebar && (
+          <div
+            className="fixed inset-0 z-25 bg-black/60 transition-opacity duration-300 md:hidden"
+            onClick={() => setShowSidebar(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-30 w-64 bg-[#0f0f11] border-r border-gray-800 p-5 flex flex-col gap-4 transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
+            showSidebar ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          {/* Header for mobile sidebar */}
+          <div className="flex md:hidden justify-between items-center pb-2 border-b border-gray-900">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Navigation</span>
             <button
-              onClick={() => dispatch({ type: 'RESET_TO_FORM', keepForm: false })}
-              className="mt-1 w-full rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800"
+              onClick={() => setShowSidebar(false)}
+              className="text-xs text-gray-500 hover:text-gray-300 px-2 py-1 border border-gray-800 rounded bg-gray-900/40 cursor-pointer"
             >
-              + Add Scene
+              ✕ Close
             </button>
           </div>
-        ) : (
-          <div className="flex flex-col gap-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Cards</p>
-            {state.quotePosts.length === 0 && (
-              <p className="text-xs text-gray-700 italic">No cards yet</p>
-            )}
-            {state.quotePosts.map((q, i) => (
-              <button
-                key={q.id}
-                onClick={() => {
-                  dispatch({ type: 'SET_QUOTE', quoteId: q.id });
-                  if (q.summary) {
-                    dispatch({ type: 'SET_SUMMARY', summary: q.summary });
-                    dispatch({ type: 'SET_STEP', step: 'BACKGROUND_CHOICE' });
-                  } else {
-                    dispatch({ type: 'SET_STEP', step: 'SUMMARY_REVIEW' });
-                  }
-                }}
-                className={`flex items-center gap-2 rounded-lg border p-2 w-full text-left transition ${
-                  state.quoteId === q.id
-                    ? 'border-purple-500 bg-purple-950/20'
-                    : 'border-gray-800 hover:border-gray-700 hover:bg-gray-900/60'
-                }`}
-              >
-                {q.image_filename ? (
+
+          {isImagePost ? (
+            <div className="flex flex-col gap-2 overflow-y-auto flex-1 pr-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Scenes</p>
+              {state.scenes.length === 0 && (
+                <p className="text-xs text-gray-700 italic">No scenes yet</p>
+              )}
+              {state.scenes.map((scene, i) => (
+                <div
+                  key={scene.id}
+                  className="flex items-center gap-2.5 rounded-xl border border-gray-850 bg-gray-900/20 p-2.5 hover:border-gray-750 transition"
+                >
                   <img
-                    src={`/api/projects/${q.project_id}/quotes/${q.id}/image`}
+                    src={`/api/projects/${scene.project_id}/scenes/${scene.id}/image`}
                     alt=""
-                    className="h-10 w-14 rounded object-cover"
+                    className="h-10 w-14 rounded-lg object-cover"
                   />
-                ) : (
-                  <div className="h-10 w-14 rounded bg-gray-800 shrink-0" />
-                )}
-                <span className="text-xs text-gray-400 truncate">
-                  {q.term || `Card ${i + 1}`}
-                </span>
+                  <span className="text-xs text-gray-400 font-medium">Scene {i + 1}</span>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  dispatch({ type: 'RESET_TO_FORM', keepForm: false });
+                  setShowSidebar(false);
+                }}
+                className="mt-2 w-full rounded-xl border border-gray-800 bg-gray-900/30 px-3 py-2.5 text-xs font-semibold text-gray-300 hover:bg-gray-800 cursor-pointer hover:border-gray-700 transition"
+              >
+                + Add Scene
               </button>
-            ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 overflow-y-auto flex-1 pr-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Cards</p>
+              {state.quotePosts.length === 0 && (
+                <p className="text-xs text-gray-700 italic">No cards yet</p>
+              )}
+              {state.quotePosts.map((q, i) => (
+                <button
+                  key={q.id}
+                  onClick={() => {
+                    dispatch({ type: 'SET_QUOTE', quoteId: q.id });
+                    if (q.summary) {
+                      dispatch({ type: 'SET_SUMMARY', summary: q.summary });
+                      dispatch({ type: 'SET_STEP', step: 'BACKGROUND_CHOICE' });
+                    } else {
+                      dispatch({ type: 'SET_STEP', step: 'SUMMARY_REVIEW' });
+                    }
+                    setShowSidebar(false);
+                  }}
+                  className={`flex items-center gap-2.5 rounded-xl border p-2.5 w-full text-left transition cursor-pointer ${
+                    state.quoteId === q.id
+                      ? 'border-purple-500 bg-purple-950/20'
+                      : 'border-gray-800 hover:border-gray-700 hover:bg-gray-900/60'
+                  }`}
+                >
+                  {q.image_filename ? (
+                    <img
+                      src={`/api/projects/${q.project_id}/quotes/${q.id}/image`}
+                      alt=""
+                      className="h-10 w-14 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="h-10 w-14 rounded-lg bg-gray-850 shrink-0" />
+                  )}
+                  <span className="text-xs text-gray-300 font-medium truncate">
+                    {q.term || `Card ${i + 1}`}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 flex flex-col overflow-y-auto bg-[#0a0a0c]">
+          {/* Mobile only step indicator subheader */}
+          <div className="sm:hidden border-b border-gray-900 px-6 py-2 bg-[#09090b]">
+            <StepIndicator step={state.step} format={state.project.format} />
           </div>
-        )}
-      </aside>
 
-      {/* Main content */}
-      <main className="flex flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-gray-800 px-6 py-3">
-          <StepIndicator step={state.step} format={state.project.format} />
-        </div>
+          <div className="flex flex-1 items-start justify-center p-6 md:p-8">
+            <div className={`w-full transition-all duration-300 ${['ENTRY_REVIEW', 'BACKGROUND_CHOICE'].includes(state.step) ? 'max-w-5xl' : 'max-w-xl'}`}>
+              {state.step === 'ENTRY_REVIEW' && <EntryList />}
 
-        <div className="flex flex-1 items-start justify-center p-8">
-          <div className="w-full max-w-xl">
-            {state.step === 'ENTRY_REVIEW' && <EntryList />}
+              {state.step === 'IMAGE_GENERATION' && (
+                <div className="flex flex-col items-center gap-4 py-20 text-center">
+                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
+                  <p className="text-gray-400">Generating images…</p>
+                </div>
+              )}
+              {state.step === 'FORM' && <ImageCreationForm />}
+              {state.step === 'PROMPT_REVIEW' && <PromptReview />}
+              {state.step === 'IMAGE_REVIEW' && <ImageGallery />}
+              {state.step === 'STORYBOARD' && <StoryboardView />}
 
-            {state.step === 'IMAGE_GENERATION' && (
-              <div className="flex flex-col items-center gap-4 py-20 text-center">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
-                <p className="text-gray-400">Generating images…</p>
-              </div>
-            )}
-            {state.step === 'FORM' && <ImageCreationForm />}
-            {state.step === 'PROMPT_REVIEW' && <PromptReview />}
-            {state.step === 'IMAGE_REVIEW' && <ImageGallery />}
-            {state.step === 'STORYBOARD' && <StoryboardView />}
-
-            {state.step === 'SUMMARY_REVIEW' && <SummaryReview />}
-            {state.step === 'BACKGROUND_CHOICE' && <BackgroundChooser />}
-            {state.step === 'CARD_REVIEW' && <CardGallery />}
-            {state.step === 'COLLECTION' && <CollectionView />}
+              {state.step === 'SUMMARY_REVIEW' && <SummaryReview />}
+              {state.step === 'BACKGROUND_CHOICE' && <BackgroundChooser />}
+              {state.step === 'CARD_REVIEW' && <CardGallery />}
+              {state.step === 'COLLECTION' && <CollectionView />}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

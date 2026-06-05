@@ -17,6 +17,7 @@ import type {
 interface WorkflowState {
   step: WorkflowStep;
   project: Project | null;
+  projectName: string;
   // image-post fields
   formInput: FormInput | null;
   llmPromptSent: string;
@@ -43,6 +44,7 @@ interface WorkflowState {
 
 type Action =
   | { type: 'SET_PROJECT'; project: Project }
+  | { type: 'SET_PROJECT_NAME'; name: string }
   | { type: 'SET_STEP'; step: WorkflowStep }
   | { type: 'SET_FORMAT'; format: 'image' | 'quote' }
   | { type: 'SET_ASPECT'; aspect: '9:16' | '16:9' }
@@ -71,6 +73,7 @@ function defaultState(): WorkflowState {
   return {
     step: 'SOURCE',
     project: null,
+    projectName: 'Untitled Project',
     formInput: null,
     llmPromptSent: '',
     generatedPrompt: '',
@@ -96,7 +99,9 @@ function defaultState(): WorkflowState {
 function reducer(state: WorkflowState, action: Action): WorkflowState {
   switch (action.type) {
     case 'SET_PROJECT':
-      return { ...state, project: action.project, scenes: [], quotePosts: [] };
+      return { ...state, project: action.project, projectName: action.project.name, scenes: [], quotePosts: [] };
+    case 'SET_PROJECT_NAME':
+      return { ...state, projectName: action.name };
     case 'SET_STEP':
       return { ...state, step: action.step, error: null };
     case 'SET_FORMAT':

@@ -162,3 +162,19 @@ def parse_scenes(project_id: str, body: _ParseScenesBody):
 
     storage.save_project(project)
     return created
+
+
+class UpdateSceneRequest(BaseModel):
+    subject: str
+
+
+@router.patch("/scenes/{scene_id}", response_model=Scene)
+def update_scene(project_id: str, scene_id: str, body: UpdateSceneRequest):
+    storage = get_storage()
+    try:
+        scene = storage.load_scene(project_id, scene_id)
+    except FileNotFoundError:
+        raise HTTPException(404, "Scene not found")
+    scene.form_input.subject = body.subject
+    storage.save_scene(scene)
+    return scene

@@ -42,14 +42,16 @@ cd frontend && npm run dev
 
 ### Image Post
 ```
-upload file → parse → FormInput (subject pre-filled) → user edits form
+upload file → parse → review & inline-edit entries (auto-saves on blur)
+           → FormInput (subject pre-filled) → user edits form
            → Claude generates prompt → review/edit → Gemini candidates
            → accept image → repeat for each scene
 ```
 
 ### Quote Post
 ```
-upload file → parse → LLM summarize → review summary
+upload file → parse → review & inline-edit entries (auto-saves on blur)
+           → LLM summarize → review summary
            → pick background mode:
              · Simple  → overlay on color/gradient variants (no Gemini)
              · Complex → Claude generates background prompt → Gemini bg → overlay
@@ -61,9 +63,11 @@ upload file → parse → LLM summarize → review summary
 The home page gives you two paths: **New Project** (upload a file and pick a format) or **My Library** (browse all past projects). From the library you can:
 
 - **Open** — resume any project at its last step
-- **Rename** — inline edit
+- **Rename** — inline edit from the library or from the editor header at any step
 - **Duplicate** — deep copy with fresh IDs; all accepted images are preserved
 - **Delete** — confirmation dialog requires you to type the project name
+
+The uploaded filename is used as the default project name and can be changed at any time via the editable title in the top header.
 
 Browser back/forward buttons work via URL hash routing (`#/project/{id}/{STEP}`).
 

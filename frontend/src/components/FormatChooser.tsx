@@ -14,9 +14,9 @@ export function FormatChooser() {
     try {
       const file = _pendingFile;
       const formData = new FormData();
-      const name = file
+      const name = state.projectName || (file
         ? file.name.replace(/\.[^.]+$/, '')
-        : `Project ${new Date().toLocaleDateString()}`;
+        : `Project ${new Date().toLocaleDateString()}`);
       formData.append('name', name);
       formData.append('format', format);
       formData.append('aspect', state.aspect);
@@ -37,47 +37,59 @@ export function FormatChooser() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full animate-fade-in">
       <div>
-        <h2 className="text-2xl font-semibold text-white">Choose Format</h2>
-        <p className="mt-1 text-sm text-gray-400">
-          How do you want to turn this content into posts?
+        <h2 className="text-2xl font-bold text-white tracking-tight">Choose Format</h2>
+        <p className="mt-1.5 text-sm text-gray-400 leading-relaxed">
+          Select the output format you want to generate for this content.
         </p>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
         <button
           onClick={() => pick('image')}
           disabled={loading}
-          className="flex flex-col gap-1 rounded-xl border border-gray-700 p-5 text-left transition hover:border-purple-500 hover:bg-gray-800 disabled:opacity-50"
+          className="group flex flex-col justify-between items-start gap-4 rounded-2xl border border-gray-800 bg-gray-900/10 p-6 text-left transition duration-200 hover:border-purple-500 hover:bg-gray-900/30 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
         >
-          <span className="text-lg font-semibold text-white">Image Post</span>
-          <span className="text-sm text-gray-400">
-            Each entry seeds an AI-illustrated image through the full prompt→image flow.
+          <div className="flex items-center gap-3">
+            <span className="text-4xl group-hover:scale-110 transition duration-200 select-none">🖼️</span>
+            <div>
+              <span className="text-lg font-bold text-white block">Image Post</span>
+              <span className="text-xs text-purple-400 font-medium">Full AI Art Flow</span>
+            </div>
+          </div>
+          <span className="text-sm text-gray-400 leading-relaxed mt-2">
+            Each item in your list generates an AI-illustrated scene. Ideal for visual storytelling, tutorials, and concept showcases.
           </span>
         </button>
 
         <button
           onClick={() => pick('quote')}
           disabled={loading}
-          className="flex flex-col gap-1 rounded-xl border border-gray-700 p-5 text-left transition hover:border-purple-500 hover:bg-gray-800 disabled:opacity-50"
+          className="group flex flex-col justify-between items-start gap-4 rounded-2xl border border-gray-800 bg-gray-900/10 p-6 text-left transition duration-200 hover:border-purple-500 hover:bg-gray-900/30 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
         >
-          <span className="text-lg font-semibold text-white">Quote Post</span>
-          <span className="text-sm text-gray-400">
-            Each entry becomes a text card — LLM-summarized and composited over a background.
+          <div className="flex items-center gap-3">
+            <span className="text-4xl group-hover:scale-110 transition duration-200 select-none">💬</span>
+            <div>
+              <span className="text-lg font-bold text-white block">Quote Post</span>
+              <span className="text-xs text-purple-400 font-medium">Text Cards & Overlays</span>
+            </div>
+          </div>
+          <span className="text-sm text-gray-400 leading-relaxed mt-2">
+            Each item becomes a beautiful text card layout, summarized by AI and composited with high-quality backgrounds. Ideal for quotes and vocabulary.
           </span>
         </button>
       </div>
 
       {loading && (
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
-          Uploading and parsing…
+        <div className="flex items-center gap-3 text-sm text-gray-400 bg-gray-900/30 border border-gray-850 px-4 py-3 rounded-xl mt-2 max-w-sm">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+          <span>Uploading and generating database entries…</span>
         </div>
       )}
 
       {error && (
-        <p className="rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-400">{error}</p>
+        <p className="rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-400 mt-2">{error}</p>
       )}
     </div>
   );
