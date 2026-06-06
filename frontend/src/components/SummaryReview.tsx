@@ -59,6 +59,8 @@ export function SummaryReview() {
         dispatch({ type: 'SET_SUMMARY', summary: firstPending.summary });
       } else {
         const res = await api.quotes.summarize(state.project.id, firstPending.id, '');
+        // Persist the summary back to state.quotePosts so re-visits show correct status
+        dispatch({ type: 'SET_QUOTE_POSTS', posts: quotes.map(q => q.id === firstPending.id ? { ...q, summary: res.summary } : q) });
         dispatch({ type: 'SET_SUMMARY', summary: res.summary });
       }
       dispatch({ type: 'SET_QUOTE', quoteId: firstPending.id });
@@ -70,14 +72,7 @@ export function SummaryReview() {
     }
   }
 
-  // An entry counts as marked if the user assigned it a path this session,
-  // or if it was already summarized in a previous session.
-  function isMarked(q: (typeof quotes)[0]) {
-    return markedForSummarize.has(q.id) || markedForBackground.has(q.id) || !!q.summary;
-  }
-
   const pendingQuotes = quotes.filter(q => !q.image_filename);
-  const allMarked = pendingQuotes.length > 0 && pendingQuotes.every(isMarked);
 
   if (quotes.length === 0) {
     return <p className="text-gray-400">No entries found.</p>;
@@ -92,7 +87,7 @@ export function SummaryReview() {
             Choose a path for each entry, then continue.
           </p>
         </div>
-        {allMarked && (
+        {pendingQuotes.length > 0 && (
           <button
             onClick={handleContinue}
             disabled={continueLoading}

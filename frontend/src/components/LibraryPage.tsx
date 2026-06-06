@@ -25,16 +25,18 @@ function thumbnailUrl(p: Project): string | null {
   return null;
 }
 
-function Thumbnail({ url, aspect }: { url: string | null; aspect: string }) {
+function Thumbnail({ url, aspect, size = 'sm' }: { url: string | null; aspect: string; size?: 'sm' | 'lg' }) {
   const [failed, setFailed] = useState(false);
   const isPortrait = aspect === '9:16';
+
+  const dimensions = size === 'lg'
+    ? (isPortrait ? 'h-36 w-20' : 'h-20 w-36')
+    : (isPortrait ? 'h-20 w-12' : 'h-12 w-20');
 
   if (!url || failed) {
     return (
       <div
-        className={`flex items-center justify-center rounded-lg bg-gray-800 text-gray-600 ${
-          isPortrait ? 'h-20 w-12' : 'h-12 w-20'
-        }`}
+        className={`flex items-center justify-center rounded-lg bg-gray-800 text-gray-600 shrink-0 ${dimensions}`}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-1 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
@@ -48,7 +50,7 @@ function Thumbnail({ url, aspect }: { url: string | null; aspect: string }) {
       src={url}
       alt=""
       onError={() => setFailed(true)}
-      className={`rounded-lg object-cover ${isPortrait ? 'h-20 w-12' : 'h-12 w-20'}`}
+      className={`rounded-lg object-cover shrink-0 ${dimensions}`}
     />
   );
 }
@@ -87,6 +89,8 @@ function RenameInput({
         if (e.key === 'Enter') commit();
         if (e.key === 'Escape') onCancel();
       }}
+      onClick={e => e.stopPropagation()}
+      onMouseDown={e => e.stopPropagation()}
       className="rounded border border-purple-500 bg-gray-900 px-2 py-0.5 text-sm font-medium text-white outline-none focus:ring-1 focus:ring-purple-500"
       style={{ width: `${Math.max(value.length, 8)}ch` }}
     />
@@ -183,13 +187,17 @@ function ActionMenu({
     <div ref={ref} className="relative">
       <button
         onClick={e => { e.stopPropagation(); setOpen(v => !v); }}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-700 text-gray-500 transition hover:border-gray-500 hover:text-white"
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-700 text-gray-500 transition hover:border-gray-550 hover:bg-gray-800/50 hover:text-white cursor-pointer"
         aria-label="Project actions"
       >
         ⋮
       </button>
       {open && (
-        <div className="absolute right-0 top-9 z-30 min-w-[130px] rounded-xl border border-gray-700 bg-gray-900 py-1 shadow-xl">
+        <div
+          onClick={e => e.stopPropagation()}
+          onMouseDown={e => e.stopPropagation()}
+          className="absolute right-0 top-9 z-30 min-w-[130px] rounded-xl border border-gray-700 bg-gray-900 py-1 shadow-xl"
+        >
           {[
             { label: 'Open', fn: () => action(onOpen) },
             { label: 'Rename', fn: () => action(onRename) },
@@ -197,16 +205,16 @@ function ActionMenu({
           ].map(({ label, fn }) => (
             <button
               key={label}
-              onClick={fn}
-              className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 hover:text-white"
+              onClick={e => { e.stopPropagation(); fn(); }}
+              className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 hover:text-white cursor-pointer"
             >
               {label}
             </button>
           ))}
           <div className="my-1 border-t border-gray-800" />
           <button
-            onClick={() => action(onDelete)}
-            className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-800 hover:text-red-300"
+            onClick={e => { e.stopPropagation(); action(onDelete); }}
+            className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-800 hover:text-red-300 cursor-pointer"
           >
             Delete
           </button>
@@ -305,16 +313,23 @@ export function LibraryPage({ onBack, onOpen }: Props) {
             </button>
           </div>
         ) : view === 'tiles' ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map(p => (
               <div
                 key={p.id}
-                className="group flex flex-col gap-3 rounded-2xl border border-gray-800 bg-gray-900/60 p-4 transition hover:border-gray-700"
+                onClick={() => onOpen(p)}
+                className="group flex flex-col gap-4 rounded-2xl border border-gray-800 bg-gray-900/40 p-5 transition-all duration-300 hover:border-purple-500/40 hover:bg-gray-800/40 hover:shadow-xl hover:shadow-purple-500/5 cursor-pointer relative"
               >
                 {/* Top: thumbnail + name + actions */}
-                <div className="flex items-start gap-3">
-                  <Thumbnail url={thumbnailUrl(p)} aspect={p.aspect} />
-                  <div className="flex flex-1 flex-col gap-0.5 min-w-0">
+                <div className="flex items-start gap-4">
+                  <div className="relative overflow-hidden rounded-lg shrink-0">
+                    <Thumbnail url={thumbnailUrl(p)} aspect={p.aspect} size="lg" />
+                    {/* Hover indicator overlay */}
+                    <div className="absolute inset-0 bg-purple-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                      <span className="text-white text-lg font-bold transform scale-75 group-hover:scale-100 transition-transform duration-200">➔</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-1 min-w-0">
                     {renamingId === p.id ? (
                       <RenameInput
                         initial={p.name}
@@ -322,15 +337,15 @@ export function LibraryPage({ onBack, onOpen }: Props) {
                         onCancel={() => setRenamingId(null)}
                       />
                     ) : (
-                      <p className="truncate font-medium text-white">{p.name}</p>
+                      <p className="truncate font-semibold text-white group-hover:text-purple-300 transition-colors text-base leading-snug">{p.name}</p>
                     )}
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="rounded-full bg-gray-800 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-400">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                      <span className="rounded bg-gray-800/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-300">
                         {p.format}
                       </span>
-                      <span className="text-xs text-gray-600">{p.aspect}</span>
-                      <span className="text-xs text-gray-600">·</span>
-                      <span className="text-xs text-gray-600">{formatDate(p.created_at)}</span>
+                      <span className="text-xs text-gray-500">{p.aspect}</span>
+                      <span className="text-xs text-gray-500">·</span>
+                      <span className="text-xs text-gray-500">{formatDate(p.created_at)}</span>
                     </div>
                   </div>
                   <ActionMenu
@@ -340,27 +355,26 @@ export function LibraryPage({ onBack, onOpen }: Props) {
                     onDelete={() => setDeleteTarget(p)}
                   />
                 </div>
-
-                {/* Open button */}
-                <button
-                  onClick={() => onOpen(p)}
-                  className="w-full rounded-xl border border-gray-700 py-2 text-sm text-gray-300 transition hover:border-purple-500 hover:text-white"
-                >
-                  Open
-                </button>
               </div>
             ))}
           </div>
         ) : (
           /* List view */
-          <div className="flex flex-col divide-y divide-gray-800 rounded-2xl border border-gray-800 overflow-hidden">
+          <div className="flex flex-col divide-y divide-gray-800 rounded-2xl border border-gray-800 overflow-hidden bg-gray-900/20">
             {projects.map(p => (
               <div
                 key={p.id}
-                className="flex items-center gap-3 bg-gray-900/60 px-4 py-3 transition hover:bg-gray-900"
+                onClick={() => onOpen(p)}
+                className="group flex items-center gap-4 bg-gray-900/40 px-5 py-4 transition-all duration-200 hover:bg-gray-800/40 cursor-pointer"
               >
-                <Thumbnail url={thumbnailUrl(p)} aspect={p.aspect} />
-                <div className="flex flex-1 flex-col gap-0.5 min-w-0">
+                <div className="relative overflow-hidden rounded-lg shrink-0">
+                  <Thumbnail url={thumbnailUrl(p)} aspect={p.aspect} size="sm" />
+                  {/* Hover indicator overlay */}
+                  <div className="absolute inset-0 bg-purple-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    <span className="text-white text-xs font-bold transform scale-75 group-hover:scale-100 transition-transform duration-200">➔</span>
+                  </div>
+                </div>
+                <div className="flex flex-1 flex-col gap-1 min-w-0">
                   {renamingId === p.id ? (
                     <RenameInput
                       initial={p.name}
@@ -368,18 +382,15 @@ export function LibraryPage({ onBack, onOpen }: Props) {
                       onCancel={() => setRenamingId(null)}
                     />
                   ) : (
-                    <button
-                      onClick={() => onOpen(p)}
-                      className="truncate text-left font-medium text-white hover:text-purple-300 transition"
-                    >
+                    <p className="truncate font-semibold text-white group-hover:text-purple-300 transition-colors text-base leading-snug">
                       {p.name}
-                    </button>
+                    </p>
                   )}
-                  <div className="flex items-center gap-1.5">
-                    <span className="rounded-full bg-gray-800 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-400">
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="rounded bg-gray-800/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-300">
                       {p.format}
                     </span>
-                    <span className="text-xs text-gray-600">{p.aspect} · {formatDate(p.created_at)}</span>
+                    <span className="text-xs text-gray-500">{p.aspect} · {formatDate(p.created_at)}</span>
                   </div>
                 </div>
                 <ActionMenu

@@ -62,7 +62,7 @@ upload file → parse → review & inline-edit entries (auto-saves on blur)
 
 The home page gives you two paths: **New Project** (upload a file and pick a format) or **My Library** (browse all past projects). From the library you can:
 
-- **Open** — resume any project at its last step
+- Click any card to resume a project at its last step (tile and list views both support full-card click with a hover overlay indicator)
 - **Rename** — inline edit from the library or from the editor header at any step
 - **Duplicate** — deep copy with fresh IDs; all accepted images are preserved
 - **Delete** — confirmation dialog requires you to type the project name

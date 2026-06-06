@@ -1,8 +1,17 @@
+import { useEffect } from 'react';
 import { useWorkflow } from '../context/WorkflowContext';
 import { api } from '../api/client';
 
 export function CollectionView() {
   const { state, dispatch } = useWorkflow();
+
+  // Re-fetch on mount so accepted counts and thumbnails reflect the latest backend state
+  useEffect(() => {
+    if (!state.project) return;
+    api.quotes.list(state.project.id).then(fresh => {
+      dispatch({ type: 'SET_QUOTE_POSTS', posts: fresh });
+    }).catch(() => {});
+  }, [state.project?.id, dispatch]);
 
   async function downloadAll() {
     if (!state.project) return;
