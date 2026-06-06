@@ -34,35 +34,35 @@ export function PromptReview() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <h2 className="text-2xl font-semibold text-white">Review Prompt</h2>
+    <div className="flex flex-col gap-5 w-full animate-fade-in">
+      <h2 className="text-2xl font-bold text-white tracking-tight">Review Prompt</h2>
       <p className="text-sm text-gray-400">
         Claude generated this text-to-image prompt. Edit it freely before sending to the image model.
       </p>
 
       <textarea
         rows={8}
-        className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder-gray-600 focus:border-purple-500 focus:outline-none resize-y"
+        className="w-full rounded-xl border border-gray-800 bg-gray-950/40 px-4 py-3 text-white placeholder-gray-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y text-base leading-relaxed"
         value={state.editedPrompt}
         onChange={e => dispatch({ type: 'SET_EDITED_PROMPT', prompt: e.target.value })}
       />
 
       {state.error && (
-        <p className="rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-400">{state.error}</p>
+        <p className="rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-400 mt-2">{state.error}</p>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 mt-2">
         <button
           onClick={handleAccept}
           disabled={loading || !state.editedPrompt.trim()}
-          className="flex-1 rounded-lg bg-purple-600 px-4 py-2.5 font-medium text-white transition hover:bg-purple-500 disabled:opacity-50"
+          className="flex-1 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-purple-500 disabled:opacity-50 cursor-pointer shadow-md hover:shadow-purple-500/10 active:scale-[0.98]"
         >
           {loading ? 'Generating images…' : 'Accept & Generate Images →'}
         </button>
         <button
           onClick={handleReject}
           disabled={loading}
-          className="rounded-lg border border-gray-700 px-4 py-2.5 font-medium text-gray-300 transition hover:bg-gray-800"
+          className="rounded-xl border border-gray-800 bg-gray-900/30 px-5 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 hover:bg-gray-800 hover:border-gray-700 cursor-pointer active:scale-[0.98]"
         >
           ← Reject
         </button>

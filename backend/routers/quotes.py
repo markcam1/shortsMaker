@@ -3,6 +3,7 @@ import io
 import re
 import shutil
 import zipfile
+from typing import Optional
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 
@@ -304,6 +305,7 @@ from pydantic import BaseModel
 class UpdateQuoteRequest(BaseModel):
     term: str
     raw_body: str
+    pending_action: Optional[str] = None
 
 
 @router.patch("/quotes/{quote_id}", response_model=QuotePost)
@@ -315,6 +317,8 @@ def update_quote(project_id: str, quote_id: str, body: UpdateQuoteRequest):
         raise HTTPException(404, "Quote not found")
     quote.term = body.term
     quote.raw_body = body.raw_body
+    if body.pending_action is not None:
+        quote.pending_action = body.pending_action  # type: ignore[assignment]
     storage.save_quote(quote)
     return quote
 

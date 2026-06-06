@@ -29,12 +29,12 @@ export function CollectionView() {
   const unfinished = state.quotePosts.filter(q => !q.image_filename);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-white">Collection</h2>
+    <div className="flex flex-col gap-6 w-full animate-fade-in">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-white tracking-tight">Collection</h2>
         <button
           onClick={downloadAll}
-          className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-500"
+          className="rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-purple-500 disabled:opacity-50 cursor-pointer shadow-md hover:shadow-purple-500/10 active:scale-[0.98]"
         >
           Download all
         </button>
@@ -42,25 +42,25 @@ export function CollectionView() {
 
       <div className="grid grid-cols-2 gap-4">
         {accepted.map(q => (
-          <div key={q.id} className="flex flex-col gap-1">
+          <div key={q.id} className="flex flex-col gap-1.5">
             <img
               src={`/api/projects/${q.project_id}/quotes/${q.id}/image`}
               alt={q.term}
-              className="w-full rounded-xl border border-gray-700 object-cover"
+              className="w-full rounded-xl border border-gray-800 object-cover shadow-sm"
             />
-            <p className="text-xs text-gray-400 truncate">{q.term}</p>
+            <p className="text-xs text-gray-400 font-medium truncate px-1">{q.term}</p>
           </div>
         ))}
       </div>
 
       {accepted.length === 0 && (
-        <p className="text-gray-500">No accepted cards yet.</p>
+        <p className="text-gray-500 italic py-8 text-center border border-dashed border-gray-800 rounded-xl bg-gray-950/20">No accepted cards yet.</p>
       )}
 
       {unfinished.length > 0 && (
         <button
           onClick={() => dispatch({ type: 'SET_STEP', step: 'SUMMARY_REVIEW' })}
-          className="rounded-lg border border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 transition"
+          className="w-full rounded-xl border border-gray-800 bg-gray-900/30 px-5 py-3 text-sm font-semibold text-gray-300 transition-all duration-200 hover:bg-gray-800 hover:border-gray-700 cursor-pointer active:scale-[0.98] text-center"
         >
           ← Continue working · {unfinished.length} card{unfinished.length !== 1 ? 's' : ''} remaining
         </button>

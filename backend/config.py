@@ -25,6 +25,9 @@ DEFAULT_ASPECT: str = _output.get("default_aspect", "9:16")
 
 OVERLAY_ENGINE: str = _cfg.get("overlay", {}).get("engine", "html")
 
+_workflow = _cfg.get("workflow", {})
+REQUIRE_ALL_MARKED: bool = bool(_workflow.get("require_all_marked", False))
+
 _choice_path = _ROOT / "choice.yaml"
 with open(_choice_path) as f:
     _choices = yaml.safe_load(f)

@@ -11,6 +11,7 @@ import type {
   ImageModelInfo,
   StyleInfo,
   TemplateInfo,
+  WorkflowConfig,
 } from './types';
 
 const BASE = '/api';
@@ -36,6 +37,9 @@ export const api = {
   },
   templates: {
     list: () => request<TemplateInfo[]>('/config/templates'),
+  },
+  config: {
+    workflow: () => request<WorkflowConfig>('/config/workflow'),
   },
   projects: {
     create: (formData: FormData) =>
@@ -110,7 +114,11 @@ export const api = {
       request<QuotePost[]>(`/projects/${projectId}/quotes`),
     get: (projectId: string, quoteId: string) =>
       request<QuotePost>(`/projects/${projectId}/quotes/${quoteId}`),
-    updateQuote: (projectId: string, quoteId: string, payload: { term: string; raw_body: string }) =>
+    updateQuote: (
+      projectId: string,
+      quoteId: string,
+      payload: { term: string; raw_body: string; pending_action?: 'summarize' | 'background' | null }
+    ) =>
       request<QuotePost>(`/projects/${projectId}/quotes/${quoteId}`, {
         method: 'PATCH',
         body: JSON.stringify(payload),

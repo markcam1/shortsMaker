@@ -62,25 +62,25 @@ export function ImageGallery() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <h2 className="text-2xl font-semibold text-white">Select an Image</h2>
+    <div className="flex flex-col gap-5 w-full animate-fade-in">
+      <h2 className="text-2xl font-bold text-white tracking-tight">Select an Image</h2>
       <p className="text-sm text-gray-400">Click an image to select it, then accept to add it as a scene.</p>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         {state.candidateUrls.map((url, i) => (
           <button
             key={i}
             onClick={() => setSelected(i)}
-            className={`relative overflow-hidden rounded-xl border-2 transition ${
+            className={`relative overflow-hidden rounded-xl border-2 transition-all duration-200 cursor-pointer ${
               selected === i
-                ? 'border-purple-500 ring-2 ring-purple-500/40'
-                : 'border-gray-700 hover:border-gray-500'
+                ? 'border-purple-500 ring-4 ring-purple-500/20'
+                : 'border-gray-800 hover:border-gray-600 bg-gray-900/10'
             }`}
           >
             <img src={url} alt={`candidate ${i + 1}`} className="w-full object-cover" />
             {selected === i && (
-              <div className="absolute inset-0 flex items-center justify-center bg-purple-600/20">
-                <span className="rounded-full bg-purple-600 px-3 py-1 text-sm font-medium text-white">
+              <div className="absolute inset-0 flex items-center justify-center bg-purple-900/10">
+                <span className="rounded-full bg-purple-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
                   Selected
                 </span>
               </div>
@@ -90,31 +90,31 @@ export function ImageGallery() {
       </div>
 
       {state.error && (
-        <p className="rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-400">{state.error}</p>
+        <p className="rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-400 mt-2">{state.error}</p>
       )}
 
       {/* Edit mode */}
       {editMode && (
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-400">Edit prompt then regenerate:</label>
+        <div className="flex flex-col gap-2 mt-2">
+          <label className="text-sm font-semibold text-gray-400">Edit prompt then regenerate:</label>
           <textarea
             rows={4}
-            className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-purple-500 focus:outline-none resize-y"
+            className="rounded-xl border border-gray-800 bg-gray-950/40 px-3 py-2 text-white placeholder-gray-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y text-sm leading-relaxed"
             value={editPrompt}
             onChange={e => setEditPrompt(e.target.value)}
             placeholder="Adjust the prompt…"
           />
-          <div className="flex gap-2">
+          <div className="flex gap-3 mt-1.5">
             <button
               onClick={handleEdit}
               disabled={loading || !editPrompt.trim()}
-              className="flex-1 rounded-lg bg-purple-600 px-4 py-2 font-medium text-white transition hover:bg-purple-500 disabled:opacity-50"
+              className="flex-1 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-purple-500 disabled:opacity-50 cursor-pointer shadow-md hover:shadow-purple-500/10 active:scale-[0.98]"
             >
               {loading ? 'Regenerating…' : 'Regenerate Images →'}
             </button>
             <button
               onClick={() => setEditMode(false)}
-              className="rounded-lg border border-gray-700 px-4 py-2 text-gray-300 hover:bg-gray-800"
+              className="rounded-xl border border-gray-800 bg-gray-900/30 px-5 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 hover:bg-gray-800 hover:border-gray-700 cursor-pointer active:scale-[0.98]"
             >
               Cancel
             </button>
@@ -122,11 +122,11 @@ export function ImageGallery() {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 mt-2">
         <button
           onClick={handleAccept}
           disabled={selected === null || loading}
-          className="flex-1 rounded-lg bg-purple-600 px-4 py-2.5 font-medium text-white transition hover:bg-purple-500 disabled:opacity-50"
+          className="flex-1 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-purple-500 disabled:opacity-50 cursor-pointer shadow-md hover:shadow-purple-500/10 active:scale-[0.98]"
         >
           {loading ? 'Saving…' : 'Add to Storyboard ✓'}
         </button>
@@ -137,7 +137,7 @@ export function ImageGallery() {
               setEditMode(true);
             }}
             disabled={loading}
-            className="rounded-lg border border-gray-700 px-4 py-2.5 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
+            className="rounded-xl border border-gray-800 bg-gray-900/30 px-5 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 hover:bg-gray-800 hover:border-gray-700 cursor-pointer active:scale-[0.98]"
           >
             Edit Prompt
           </button>
@@ -145,14 +145,14 @@ export function ImageGallery() {
         <button
           onClick={rejectToPrompt}
           disabled={loading}
-          className="rounded-lg border border-gray-700 px-4 py-2.5 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
+          className="rounded-xl border border-gray-800 bg-gray-900/30 px-5 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 hover:bg-gray-800 hover:border-gray-700 cursor-pointer active:scale-[0.98]"
         >
           ← Back to Prompt
         </button>
         <button
           onClick={rejectToForm}
           disabled={loading}
-          className="rounded-lg border border-gray-700 px-4 py-2.5 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
+          className="rounded-xl border border-gray-800 bg-gray-900/30 px-5 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 hover:bg-gray-800 hover:border-gray-700 cursor-pointer active:scale-[0.98]"
         >
           ← Back to Form
         </button>

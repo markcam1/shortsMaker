@@ -131,8 +131,8 @@ export function ImageCreationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <h2 className="text-2xl font-semibold text-white">New Scene</h2>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 animate-fade-in">
+      <h2 className="text-2xl font-bold text-white tracking-tight">New Scene</h2>
 
       {field('Subject', 'subject', 'e.g. A lone astronaut')}
       {field('Action', 'action', 'e.g. gazing at the horizon')}
@@ -207,7 +207,7 @@ export function ImageCreationForm() {
       <button
         type="submit"
         disabled={loading || !form.subject || !form.image_model}
-        className="rounded-lg bg-purple-600 px-4 py-2.5 font-medium text-white transition hover:bg-purple-500 disabled:opacity-50"
+        className="rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-purple-500 disabled:opacity-50 cursor-pointer shadow-md hover:shadow-purple-500/10 active:scale-[0.98]"
       >
         {loading ? 'Generating prompt…' : 'Generate Prompt →'}
       </button>

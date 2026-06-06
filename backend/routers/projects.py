@@ -8,7 +8,7 @@ from backend.models.schemas import (
     ParsedItem, QuotePost, Scene,
 )
 from backend.storage import get_storage
-from backend.config import IMAGE_MODELS, STYLE_CHOICES, TEMPLATE_CHOICES, resolve_llm, LLM_CONFIG
+from backend.config import IMAGE_MODELS, STYLE_CHOICES, TEMPLATE_CHOICES, resolve_llm, LLM_CONFIG, REQUIRE_ALL_MARKED
 from backend.services.parse_service import UploadSource, get_parser
 from backend.models.schemas import FormInput
 
@@ -71,6 +71,11 @@ def list_templates():
             color_schemes=color_schemes,
         ))
     return result
+
+
+@router.get("/config/workflow")
+def get_workflow_config():
+    return {"require_all_marked": REQUIRE_ALL_MARKED}
 
 
 @router.get("/config/llm")

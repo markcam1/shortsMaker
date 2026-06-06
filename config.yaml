@@ -27,6 +27,9 @@ output:
 overlay:
   engine: html            # html (Playwright) | pillow
 
+workflow:
+  require_all_marked: true   # set false to show Continue whenever any pending quote exists
+
 image_models:
   - id: gemini-flash-image
     name: "Gemini 2.5 Flash Image"

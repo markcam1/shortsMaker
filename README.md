@@ -51,11 +51,13 @@ upload file → parse → review & inline-edit entries (auto-saves on blur)
 ### Quote Post
 ```
 upload file → parse → review & inline-edit entries (auto-saves on blur)
-           → LLM summarize → review summary
-           → pick background mode:
+           → Review Entries: mark each card "Summarize" or "Choose Background"
+           → Next Card →  process one card at a time through BackgroundChooser → pick card
+             Continue All → pick settings once → auto-generate & accept all pending cards
+           → pick background mode (per card or for all):
              · Simple  → overlay on color/gradient variants (no Gemini)
              · Complex → Claude generates background prompt → Gemini bg → overlay
-           → accept card → export zip
+           → accept card(s) → export zip
 ```
 
 ## Project management
@@ -97,6 +99,8 @@ data/               Runtime storage (gitignored)
 **Quote templates (`choice.yaml`)** — `templates → color_schemes → font_pairings` cascade. Each template carries `max_chars` passed to the summarizer so text fits the layout. Adding templates/schemes/fonts is a YAML-only edit.
 
 **Style choices (`choice.yaml`)** — `styles → lighting_moods → color_palettes` cascade for Image Posts and Complex quote backgrounds.
+
+**Workflow behaviour (`config.yaml`)** — `workflow.require_all_marked: true` (default) requires every pending card in Review Entries to have an action chosen before **Next Card** or **Continue All** become active. Set to `false` to make the buttons available immediately.
 
 > **Note:** `WorkflowContext` persists to `localStorage` key `shortsmaker_workflow`. After changing `num_images`, output aspects, or template definitions, clear localStorage for `localhost:5173`.
 

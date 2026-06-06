@@ -39,6 +39,7 @@ interface WorkflowState {
   backgroundDesc: string;
   quotePosts: QuotePost[];
   quoteCandidateUrls: string[];
+  batchMode: boolean;
   error: string | null;
 }
 
@@ -63,6 +64,7 @@ type Action =
   | { type: 'SET_QUOTE_CANDIDATES'; urls: string[] }
   | { type: 'SET_QUOTE_POSTS'; posts: QuotePost[] }
   | { type: 'QUOTE_ACCEPTED'; quote: QuotePost }
+  | { type: 'SET_BATCH_MODE'; batch: boolean }
   | { type: 'SET_ERROR'; error: string | null }
   | { type: 'RESET_TO_FORM'; keepForm: boolean }
   | { type: 'RESET_TO_SOURCE' };
@@ -92,6 +94,7 @@ function defaultState(): WorkflowState {
     backgroundDesc: '',
     quotePosts: [],
     quoteCandidateUrls: [],
+    batchMode: false,
     error: null,
   };
 }
@@ -167,6 +170,8 @@ function reducer(state: WorkflowState, action: Action): WorkflowState {
         quoteId: null,
         quoteCandidateUrls: [],
       };
+    case 'SET_BATCH_MODE':
+      return { ...state, batchMode: action.batch };
     case 'SET_ERROR':
       return { ...state, error: action.error };
     case 'RESET_TO_FORM':

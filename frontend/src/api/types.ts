@@ -52,7 +52,12 @@ export interface QuotePost {
   color_scheme_id: string;
   font_pairing_id: string;
   image_filename: string;
+  pending_action: 'summarize' | 'background' | null;
   created_at: string;
+}
+
+export interface WorkflowConfig {
+  require_all_marked: boolean;
 }
 
 export interface GeneratePromptResponse {

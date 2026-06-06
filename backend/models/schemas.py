@@ -63,6 +63,7 @@ class QuotePost(BaseModel):
     color_scheme_id: str = ""
     font_pairing_id: str = ""
     image_filename: str = ""
+    pending_action: Optional[Literal["summarize", "background"]] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 

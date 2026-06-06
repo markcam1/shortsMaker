@@ -21,6 +21,7 @@ export function BackgroundChooser() {
   // Complex mode prompt review phase
   const [promptPhase, setPromptPhase] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState('');
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
 
   useEffect(() => {
     api.templates.list().then(ts => {
@@ -104,8 +105,73 @@ export function BackgroundChooser() {
     }
   }
 
+  async function generateAll(acceptedPrompt?: string) {
+    if (!state.project || !selectedTemplate || !selectedScheme || !selectedFont) return;
+    const pending = state.quotePosts.filter(q => !q.image_filename);
+    setLoading(true);
+    setError(null);
+    setBatchProgress({ current: 0, total: pending.length });
+    try {
+      const updatedQuotes = [...state.quotePosts];
+      for (let i = 0; i < pending.length; i++) {
+        const q = pending[i];
+        setBatchProgress({ current: i + 1, total: pending.length });
+
+        // Resolve summary for this quote
+        let summary = q.summary || '';
+        if (!summary) {
+          if (q.pending_action === 'background') {
+            summary = q.raw_body;
+          } else {
+            const res = await api.quotes.summarize(state.project.id, q.id, selectedTemplate.id);
+            summary = res.summary;
+          }
+        }
+
+        // Generate candidates
+        await api.quotes.generateCandidates(state.project.id, q.id, {
+          summary,
+          background_mode: bgMode,
+          template_id: selectedTemplate.id,
+          color_scheme_id: selectedScheme.id,
+          font_pairing_id: selectedFont.id,
+          background_desc: bgMode === 'complex' ? bgDesc : '',
+          accepted_prompt: acceptedPrompt,
+          image_model_id: bgMode === 'complex' ? selectedModelId : '',
+        });
+
+        // Auto-accept first candidate
+        const accepted = await api.quotes.accept(state.project.id, q.id, {
+          candidate_index: 0,
+          summary,
+          template_id: selectedTemplate.id,
+          color_scheme_id: selectedScheme.id,
+          font_pairing_id: selectedFont.id,
+        });
+
+        const idx = updatedQuotes.findIndex(x => x.id === q.id);
+        if (idx >= 0) updatedQuotes[idx] = accepted;
+      }
+
+      dispatch({ type: 'SET_QUOTE_POSTS', posts: updatedQuotes });
+      dispatch({ type: 'SET_BATCH_MODE', batch: false });
+      dispatch({ type: 'SET_STEP', step: 'COLLECTION' });
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+      setBatchProgress(null);
+    }
+  }
+
   async function generate() {
-    if (bgMode === 'complex') {
+    if (state.batchMode) {
+      if (bgMode === 'complex') {
+        await handleGeneratePrompt();
+      } else {
+        await generateAll();
+      }
+    } else if (bgMode === 'complex') {
       await handleGeneratePrompt();
     } else {
       await generateCandidates();
@@ -116,6 +182,7 @@ export function BackgroundChooser() {
   const fonts = selectedScheme?.font_pairings ?? [];
 
   if (promptPhase) {
+    const pendingCount = state.quotePosts.filter(q => !q.image_filename).length;
     return (
       <div className="flex flex-col gap-6 w-full animate-fade-in">
         <div>
@@ -123,6 +190,11 @@ export function BackgroundChooser() {
           <p className="mt-1.5 text-sm text-gray-400 leading-relaxed">
             Edit the AI-generated prompt before sending to the image model.
           </p>
+          {state.batchMode && (
+            <div className="mt-3 rounded-xl bg-indigo-950/30 border border-indigo-800/40 px-4 py-2.5 text-sm text-indigo-300">
+              This prompt will be used to generate backgrounds for all {pendingCount} pending cards.
+            </div>
+          )}
         </div>
 
         <textarea
@@ -132,17 +204,25 @@ export function BackgroundChooser() {
           onChange={e => setEditedPrompt(e.target.value)}
         />
 
+        {batchProgress && (
+          <p className="text-sm text-indigo-400">
+            Processing card {batchProgress.current} of {batchProgress.total}…
+          </p>
+        )}
+
         {error && (
           <p className="rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-400">{error}</p>
         )}
 
         <div className="flex flex-col sm:flex-row gap-3 mt-2">
           <button
-            onClick={() => generateCandidates(editedPrompt)}
+            onClick={() => state.batchMode ? generateAll(editedPrompt) : generateCandidates(editedPrompt)}
             disabled={loading || !editedPrompt.trim()}
             className="flex-1 rounded-xl bg-purple-600 px-4 py-3 font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50 cursor-pointer shadow-md"
           >
-            {loading ? 'Generating cards…' : 'Accept & Generate Cards →'}
+            {loading
+              ? `Generating cards…${batchProgress ? ` (${batchProgress.current}/${batchProgress.total})` : ''}`
+              : state.batchMode ? `Apply to All ${pendingCount} Cards →` : 'Accept & Generate Cards →'}
           </button>
           <button
             onClick={() => { setPromptPhase(false); setError(null); }}
@@ -156,11 +236,17 @@ export function BackgroundChooser() {
     );
   }
 
+  const pendingCount = state.quotePosts.filter(q => !q.image_filename).length;
+
   return (
     <div className="flex flex-col gap-6 w-full animate-fade-in">
       <div>
         <h2 className="text-2xl font-bold text-white tracking-tight">Choose Background</h2>
-        {state.summary && (
+        {state.batchMode ? (
+          <div className="mt-3 rounded-xl bg-indigo-950/30 border border-indigo-800/40 px-4 py-2.5 text-sm text-indigo-300">
+            These settings will be applied to all {pendingCount} pending cards at once.
+          </div>
+        ) : state.summary && (
           <div className="mt-3 rounded-xl bg-purple-950/20 border border-purple-900/30 p-4">
             <p className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-1">Active Quote Content</p>
             <p className="text-sm text-gray-300 font-medium leading-relaxed">"{state.summary}"</p>
@@ -288,14 +374,26 @@ export function BackgroundChooser() {
         <p className="rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-400 mt-2">{error}</p>
       )}
 
+      {batchProgress && (
+        <p className="text-sm text-indigo-400">
+          Processing card {batchProgress.current} of {batchProgress.total}…
+        </p>
+      )}
+
       <button
         onClick={generate}
         disabled={loading || !selectedTemplate || !selectedScheme || !selectedFont || (bgMode === 'complex' && !selectedModelId)}
         className="mt-4 rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50 cursor-pointer shadow-md hover:shadow-purple-950/20"
       >
         {loading
-          ? bgMode === 'complex' ? 'Generating prompt…' : 'Generating cards…'
-          : bgMode === 'complex' ? 'Generate Prompt →' : 'Generate Cards →'}
+          ? batchProgress
+            ? `Processing ${batchProgress.current} of ${batchProgress.total}…`
+            : bgMode === 'complex' ? 'Generating prompt…' : 'Generating cards…'
+          : state.batchMode
+            ? bgMode === 'complex'
+              ? 'Generate Prompt →'
+              : `Apply to All ${pendingCount} Cards →`
+            : bgMode === 'complex' ? 'Generate Prompt →' : 'Generate Cards →'}
       </button>
     </div>
   );
